@@ -11,4 +11,5 @@ class AlignedDataSample(BaseDataSample):
         self.aligned_word = aligned_word    # unicode string
 
     def __repr__(self):
-        return f'Input: {self.lemma_str},Features: {self.in_feat_repr}, Output: {self.word_str}, Features: {self.out_feat_repr}, Actions: {self.act_repr}'
+        return f'Input: {self.lemma_str},Features: {self.in_feat_repr}, Output: {self.word_str}, ' \
+               f'Features: {self.out_feat_repr}, Actions: {self.act_repr}'

@@ -16,15 +16,8 @@ class EditDataSet(AlignedDataSet):
 
         self.copy_as_substitution = copy_as_substitution
         self.substitution = substitution
-        if copy_as_substitution is True:
-            self.substitution = True
-            print('TREATING COPY AS SUBSTITUTIONS')
 
-        if self.substitution is True:
-            self.reorder_deletes = False
-            print('USING SUBSTITUTION ACTIONS, NOT REORDERING DELETES')
-        else:
-            self.reorder_deletes = reorder_deletes
+        self.reorder_deletes = reorder_deletes
 
         # "frequency check" for COPY and DELETE actions
         self.freq_check = freq_check

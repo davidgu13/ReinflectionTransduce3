@@ -35,15 +35,9 @@ class BaseDataSample(object):
     @classmethod
     def from_row(cls, vocab, training_data, tag_wraps, verbose, row, sigm2017format=True,
                  no_feat_format=False, pos_emb=True, avm_feat_format=False):
-        if sigm2017format:
-            input_str, in_feats_str, output_str, out_feats_str = row
-            feats_delimiter = ';'
-            input_str = remove_pipe(input_str)
-            output_str = remove_pipe(output_str)
-        else:
-            in_feats_str, input_str, out_feats_str, output_str = row
-            feats_delimiter = ';'
-            # feats_delimiter = u','
+        in_feats_str, input_str, out_feats_str, output_str = row
+        feats_delimiter = ';'
+        # feats_delimiter = u','
 
         # encode features as integers
         # POS feature treated separately
@@ -53,31 +47,20 @@ class BaseDataSample(object):
         assert not any(c in output_str for c in SPECIAL_CHARS), (output_str, SPECIAL_CHARS)
         assert isinstance(in_feats_str, str), in_feats_str
         assert isinstance(out_feats_str, str), out_feats_str
-        # `avm_feat_format=True` implies that `pos_emb=False`
-        if avm_feat_format: assert not pos_emb
 
         # encode input characters
         input = [vocab.char[c] for c in input_str]  # .split()] # todo oracle
         # encode word
 
         word = vocab.word[output_str]  # .replace(' ','')] # todo oracle
-        in_feats = in_feats_str.split(feats_delimiter) if not no_feat_format else ['']
-        out_feats = out_feats_str.split(feats_delimiter) if not no_feat_format else ['']
-        if pos_emb:
-            # encode features and, separately, pos
-            in_pos = vocab.pos[in_feats[0]]
-            out_pos = vocab.pos[out_feats[0]]
-            in_feats = [vocab.feat[f] for f in set(in_feats[1:])]
-            out_feats = [vocab.feat[f] for f in set(out_feats[1:])]
-        else:
-            in_pos, out_pos = None, None
-            if avm_feat_format:
-                # map from encoded feature names to encoded features
-                in_feats = {vocab.feat_type[f.split('=')[0]]: vocab.feat[f] for f in set(in_feats)}
-                out_feats = {vocab.feat_type[f.split('=')[0]]: vocab.feat[f] for f in set(out_feats)}
-            else:
-                in_feats = [vocab.feat[f] for f in set(in_feats)]
-                out_feats = [vocab.feat[f] for f in set(out_feats)]
+
+        in_feats = in_feats_str.split(feats_delimiter)
+        out_feats = out_feats_str.split(feats_delimiter)
+
+        in_pos, out_pos = None, None
+
+        in_feats = [vocab.feat[f] for f in set(in_feats)]
+        out_feats = [vocab.feat[f] for f in set(out_feats)]
 
         # wrap encoded input with (encoded) boundary tags
         if tag_wraps == 'both':

@@ -48,12 +48,6 @@ class BaseDataSet(object):
         print('Word boundary tags?', tag_wraps)
         print('Verbose?', verbose)
 
-        if avm_feat_format:
-            # check that `avm_feat_format` and `pos_emb` does not clash
-            if pos_emb:
-                print('Attribute-value feature matrix implies that no specialized pos embedding is used.')
-                pos_emb = False
-
         with codecs.open(filename, encoding=encoding) as f:
             for row in f:
                 split_row = row.strip().split(delimiter)

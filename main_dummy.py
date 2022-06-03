@@ -88,14 +88,7 @@ Options:
 # print(f"docopt(__doc__) = \n{arguments}")
 # print()
 
-if __name__ == '__main__':
-    # Import EditVocab class. See how it looks for a naive g-g reinflection dataset
-    # Do the same for AlignedDataSample class.
-    # Do the same for EditDataset class.
-    # from DataRelatedClasses.EditVocab import EditVocab
-    # obj = EditVocab(pos_emb=False, avm_feat_format=False, param_tying=True, encoding=None)
-
-
+def Vocab_example():
     from DataRelatedClasses.Vocabs.Vocab import Vocab
     # obj = Vocab()
     s = 'fndsoanofinviabfsainvdvnsiubviorwgru ghruebiudsabdiufbv uiahfudaid'
@@ -107,3 +100,12 @@ if __name__ == '__main__':
     print(obj['f'])
 
     obj.printer()
+
+if __name__ == '__main__':
+    # Import EditVocab class. See how it looks for a naive g-g reinflection dataset
+    # Do the same for AlignedDataSample class.
+    # Do the same for EditDataset class.
+    # from DataRelatedClasses.EditVocab import EditVocab
+    # obj = EditVocab(pos_emb=False, avm_feat_format=False, param_tying=True, encoding=None)
+
+    Vocab_example()
