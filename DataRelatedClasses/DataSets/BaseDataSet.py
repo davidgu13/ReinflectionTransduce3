@@ -24,6 +24,7 @@ class BaseDataSet(object):
                   pos_emb=True, avm_feat_format=False, tag_wraps='both', verbose=True, **kwargs):
         # filename (str):   tab-separated file containing morphology reinflection data:
         #                   lemma word feat1;feat2;feat3...
+
         if isinstance(filename, list):
             filename, hallname = filename
             print('adding hallucinated data from', hallname)
@@ -36,6 +37,7 @@ class BaseDataSet(object):
             print('=====TRAIN TRAIN TRAIN=====')
         else:
             print('=====TEST TEST TEST=====')
+
         print(filename)
 
         # training_data = True if 'train' in os.path.basename(filename) else False

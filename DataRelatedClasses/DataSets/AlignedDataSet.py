@@ -3,13 +3,13 @@ from DataRelatedClasses.DataSamples.AlignedDataSample import AlignedDataSample
 from defaults import BEGIN_WORD_CHAR, END_WORD_CHAR
 from aligners import smart_align
 
-
 class AlignedDataSet(BaseDataSet):
     # this dataset aligns its inputs
     def __init__(self, aligner=smart_align, **kwargs):
         super(AlignedDataSet, self).__init__(**kwargs)
 
         self.aligner = aligner
+
         # wrapping lemma / word with word boundary tags
         if self.tag_wraps == 'both':
             self.wrapper = lambda \

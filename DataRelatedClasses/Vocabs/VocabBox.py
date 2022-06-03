@@ -2,7 +2,6 @@ from DataRelatedClasses.Vocabs.Vocab import Vocab
 from defaults import (UNK, UNK_CHAR, BEGIN_WORD, BEGIN_WORD_CHAR,
     END_WORD, END_WORD_CHAR)
 
-
 class VocabBox(object):
     def __init__(self, acts, pos_emb, avm_feat_format, param_tying, encoding):
 

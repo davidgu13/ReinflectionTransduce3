@@ -4,7 +4,6 @@ from DataRelatedClasses.utils import action2string
 from aligners import dumb_align
 from defaults import DELETE, COPY, ALIGN_SYMBOL, DELETE_CHAR,COPY_CHAR
 
-
 class EditDataSet(AlignedDataSet):
     # this dataset uses COPY action
     def __init__(self, try_reverse=False, substitution=False, copy_as_substitution=False,
@@ -14,20 +13,24 @@ class EditDataSet(AlignedDataSet):
         if self.try_reverse:
             print('USING STRING REVERSING WITH DUMB ALIGNMENT...')
             print('USING DEFAULT ALIGN SYMBOL ~')
+
         self.copy_as_substitution = copy_as_substitution
         self.substitution = substitution
         if copy_as_substitution is True:
             self.substitution = True
             print('TREATING COPY AS SUBSTITUTIONS')
+
         if self.substitution is True:
             self.reorder_deletes = False
             print('USING SUBSTITUTION ACTIONS, NOT REORDERING DELETES')
         else:
             self.reorder_deletes = reorder_deletes
+
         # "frequency check" for COPY and DELETE actions
         self.freq_check = freq_check
 
         super(EditDataSet, self).__init__(**kwargs)
+
         if self.freq_check:
             copy_low, delete_high = self.freq_check
             # some stats on actions
@@ -35,8 +38,10 @@ class EditDataSet(AlignedDataSet):
             # print action_counter.values()
             freq_delete = action_counter[DELETE] / sum(action_counter.values())
             freq_copy = action_counter[COPY] / sum(action_counter.values())
+
             print(('Alignment results: COPY action freq {:.3f}, '
                    'DELETE action freq {:.3f}'.format(freq_copy, freq_delete)))
+
             if freq_copy < copy_low:
                 print('WARNING: Too few COPY actions!\n')
             if freq_delete > delete_high:
@@ -77,12 +82,12 @@ class EditDataSet(AlignedDataSet):
         actions, has_copy = _build(lemma, word)
 
         if self.try_reverse and has_copy:
-            # no copying is being done, probably
-            # this sample uses prefixation. Try aligning
-            # original pair from the end:
+            # no copying is being done, probably this sample uses prefixation.
+            # Try aligning original pair from the end:
             reversed_pair = sample.lemma[::-1], sample.word[::-1]
             [(new_al_lemma, new_al_word)] = self.aligner([reversed_pair], ALIGN_SYMBOL)
             ractions, has_copy = _build(new_al_lemma[::-1], new_al_word[::-1])
+
             if has_copy:
                 print(('Reversed aligned: {} => {}\n'
                        'Forward alignment: {}, REVERSED alignment: {}'.format(
