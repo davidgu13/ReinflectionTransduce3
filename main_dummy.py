@@ -92,11 +92,11 @@ if __name__ == '__main__':
     # Import EditVocab class. See how it looks for a naive g-g reinflection dataset
     # Do the same for AlignedDataSample class.
     # Do the same for EditDataset class.
-    # from DataSamplesAndDatasets.EditVocab import EditVocab
+    # from DataRelatedClasses.EditVocab import EditVocab
     # obj = EditVocab(pos_emb=False, avm_feat_format=False, param_tying=True, encoding=None)
 
 
-    from DataSamplesAndDatasets.Vocab import Vocab
+    from DataRelatedClasses.Vocabs.Vocab import Vocab
     # obj = Vocab()
     s = 'fndsoanofinviabfsainvdvnsiubviorwgru ghruebiudsabdiufbv uiahfudaid'
     obj = Vocab.from_list(list(s), encoding=None)

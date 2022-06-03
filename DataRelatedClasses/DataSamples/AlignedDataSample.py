@@ -1,5 +1,5 @@
-from DataSamplesAndDatasets import BaseDataSample
-from DataSamplesAndDatasets.utils import action2string
+from DataRelatedClasses.DataSamples.BaseDataSample import BaseDataSample
+from DataRelatedClasses.utils import action2string
 
 class AlignedDataSample(BaseDataSample):
     # data sample with encoded oracle actions derived from character alignment of lemma and word

@@ -57,10 +57,13 @@ class Vocab(object):
 
     def printer(self):
         print("\nPrinting object info:")
+        print(f"self.encoding = {self.encoding}")
+
         print(f"self.w2i = {self.w2i}")
         print(f"self.i2w = {self.i2w}")
-        print(f"self.encoding = {self.encoding}")
+
         print(f"self.freqs = {self.freqs}")
+
         print(f"self.keys() = {self.keys()}")
         print(f"self.freq() = {self.freq()}")
-        print(f"self.size() = {self.size()}")
+        print(f"self.size() = {self.size()}\n")
