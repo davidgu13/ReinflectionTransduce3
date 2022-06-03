@@ -1,3 +1,11 @@
+# Custom ignores
+.idea/
+WrittenInPython2.7/
+*.txt
+*.png
+*.py.bak
+*.zip
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
