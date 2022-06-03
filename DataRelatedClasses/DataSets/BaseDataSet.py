@@ -43,8 +43,8 @@ class BaseDataSet(object):
         # training_data = True if 'train' in os.path.basename(filename) else False
         datasamples = []
 
-        print('Loading data from file: {}'.format(filename))
-        print('These are {} data.'.format('training' if training_data else 'holdout'))
+        print(f'Loading data from file: {filename}')
+        print(f"These are {'training' if training_data else 'holdout'} data.")
         print('Word boundary tags?', tag_wraps)
         print('Verbose?', verbose)
 
@@ -77,7 +77,7 @@ class BaseDataSet(object):
                                                  split_row, sigm2017format, no_feat_format,
                                                  pos_emb, avm_feat_format)
                     datasamples.append(sample)
-            print('hallucinated data added. training expanded from {} to {} examples'.format(old_len, len(datasamples)))
+            print(f'hallucinated data added. training expanded from {old_len} to {len(datasamples)} examples')
 
         return cls(filename=filename, samples=datasamples, vocab=vocab,
                    training_data=training_data, tag_wraps=tag_wraps, verbose=verbose, **kwargs)

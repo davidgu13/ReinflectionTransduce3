@@ -89,11 +89,9 @@ class EditDataSet(AlignedDataSet):
             ractions, has_copy = _build(new_al_lemma[::-1], new_al_word[::-1])
 
             if has_copy:
-                print(('Reversed aligned: {} => {}\n'
-                       'Forward alignment: {}, REVERSED alignment: {}'.format(
-                    al_lemma, al_word,
-                    action2string(actions, self.vocab),
-                    action2string(ractions, self.vocab))))
+                print(
+                    f'Reversed aligned: {al_lemma} => {al_word}\n'
+                    f'Forward alignment: {action2string(actions, self.vocab)}, REVERSED alignment: {action2string(ractions, self.vocab)}')
                 actions = ractions
 
         if self.reorder_deletes:
@@ -120,9 +118,7 @@ class EditDataSet(AlignedDataSet):
             actions = reordered_actions + suffix
 
         if self.verbose == 2:
-            print('{}\n{}\n{}\n'.format(word,
-                                        action2string(actions, self.vocab),
-                                        lemma))
+            print(f'{word}\n{action2string(actions, self.vocab)}\n{lemma}\n')
 
         sample.set_actions(actions, lemma, word)
 

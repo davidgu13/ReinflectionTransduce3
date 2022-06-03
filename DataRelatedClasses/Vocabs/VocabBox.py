@@ -51,8 +51,8 @@ class VocabBox(object):
         self.feat_type_train = None
 
     def __repr__(self):
-        return 'VocabBox (act, feat, pos, char, feat_type) with the following ' \
-               'special actions: {}'.format(self.w2i_acts)
+        return f'VocabBox (act, feat, pos, char, feat_type) with the following ' \
+               f'special actions: {self.w2i_acts}'
 
     def train_cutoff(self):
         # store indices separating training set elements

@@ -19,7 +19,7 @@ class AlignedDataSet(BaseDataSet):
         else:
             self.wrapper = lambda s: s
 
-        print('Started aligning with {} aligner...'.format(self.aligner))
+        print(f'Started aligning with {self.aligner} aligner...')
         aligned_pairs = self.aligner([(s.lemma_str, s.word_str) for s in self.samples], **kwargs)
         print('Finished aligning.')
 
@@ -29,8 +29,8 @@ class AlignedDataSet(BaseDataSet):
             aw = self.wrapper(aw)
             self._build_oracle_actions(al, aw, sample=s, **kwargs)
         print('Finished building oracle actions.')
-        print('Number of actions: {}'.format(len(self.vocab.act)))
-        print('Action set: {}'.format(' '.join(sorted(self.vocab.act.keys()))))
+        print(f'Number of actions: {len(self.vocab.act)}')
+        print(f'Action set: {" ".join(sorted(self.vocab.act.keys()))}')
 
         if self.verbose:
             print('Examples of oracle actions:')
