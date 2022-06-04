@@ -117,6 +117,9 @@ class EditDataSet(AlignedDataSet):
 
     @classmethod
     def from_file(cls, filename, vocab=None, **kwargs):
-        assert isinstance(vocab, EditVocab)
+        if vocab:
+            assert isinstance(vocab, EditVocab)
+        else:
+            vocab = EditVocab()
         print(vocab)
         return super(EditDataSet, cls).from_file(filename, vocab, **kwargs)
