@@ -33,8 +33,7 @@ class BaseDataSample(object):
                f'Features: {self.out_feat_repr}, Wraps: {self.tag_wraps}'
 
     @classmethod
-    def from_row(cls, vocab, training_data, tag_wraps, verbose, row, sigm2017format=True,
-                 no_feat_format=False, pos_emb=True, avm_feat_format=False):
+    def from_row(cls, vocab, tag_wraps, verbose, row):
         in_feats_str, input_str, out_feats_str, output_str = row
         feats_delimiter = ';'
         # feats_delimiter = u','

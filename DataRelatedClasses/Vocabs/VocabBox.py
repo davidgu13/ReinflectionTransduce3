@@ -3,7 +3,7 @@ from defaults import (UNK, UNK_CHAR, BEGIN_WORD, BEGIN_WORD_CHAR,
     END_WORD, END_WORD_CHAR)
 
 class VocabBox(object):
-    def __init__(self, acts, pos_emb, avm_feat_format, param_tying, encoding):
+    def __init__(self, acts, encoding):
 
         self.w2i_acts = acts
         self.act = Vocab(acts, encoding=encoding)
@@ -15,30 +15,13 @@ class VocabBox(object):
         w2i_feats = {UNK_CHAR: UNK}
         self.feat = Vocab(w2i_feats, encoding=encoding)
 
-        if pos_emb:
-            # pos features get special treatment
-            self.pos = Vocab(w2i_feats, encoding=encoding)
-            print('VOCAB will index POS separately.')
-        else:
-            self.pos = self.feat
+        self.pos = self.feat
 
-        if avm_feat_format:
-            # feature types get encoded, too
-            self.feat_type = Vocab(dict(), encoding=encoding)
-            print('VOCAB will index all feature types.')
-        else:
-            self.feat_type = self.feat
+        self.feat_type = self.feat
 
-        if param_tying:
-            # use one set of indices for acts and chars
-            self.char = self.act
-            print('VOCAB will use same indices for actions and chars.')
-        else:
-            # special chars
-            w2i_chars = {BEGIN_WORD_CHAR: BEGIN_WORD,
-                         END_WORD_CHAR: END_WORD,
-                         UNK_CHAR: UNK}
-            self.char = Vocab(w2i_chars, encoding=encoding)
+        # use one set of indices for acts and chars
+        self.char = self.act
+        print('VOCAB will use same indices for actions and chars.')
 
         # encoding of words
         self.word = Vocab(encoding=encoding)

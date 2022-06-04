@@ -20,8 +20,7 @@ class BaseDataSet(object):
 
     @classmethod
     def from_file(cls, filename, vocab, DataSample=BaseDataSample,
-                  encoding='utf8', delimiter='\t', sigm2017format=True, no_feat_format=False,
-                  pos_emb=True, avm_feat_format=False, tag_wraps='both', verbose=True, **kwargs):
+                  encoding='utf8', delimiter='\t', tag_wraps='both', verbose=True, **kwargs):
         # filename (str):   tab-separated file containing morphology reinflection data:
         #                   lemma word feat1;feat2;feat3...
 
@@ -51,9 +50,7 @@ class BaseDataSet(object):
         with codecs.open(filename, encoding=encoding) as f:
             for row in f:
                 split_row = row.strip().split(delimiter)
-                sample = DataSample.from_row(vocab, training_data, tag_wraps, verbose,
-                                             split_row, sigm2017format, no_feat_format,
-                                             pos_emb, avm_feat_format)
+                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row)
                 datasamples.append(sample)
 
         if hallname:
@@ -67,9 +64,7 @@ class BaseDataSet(object):
                     letters = set(split_row[0]) | set(split_row[3])
                     if '|' in letters:
                         continue
-                    sample = DataSample.from_row(vocab, training_data, tag_wraps, verbose,
-                                                 split_row, sigm2017format, no_feat_format,
-                                                 pos_emb, avm_feat_format)
+                    sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row)
                     datasamples.append(sample)
             print(f'hallucinated data added. training expanded from {old_len} to {len(datasamples)} examples')
 
