@@ -31,16 +31,12 @@ class BaseDataSet(object):
         else:
             hallname = None
 
-        training_data = True if 'inflec_data' in os.path.basename(filename) or 'all_ns' in os.path.basename(filename) \
-                                or 'train' in os.path.basename(filename) else False
+        training_data = any([c in os.path.basename(filename) for c in ['inflec_data', 'all_ns', 'train']])
         if training_data:
             print('=====TRAIN TRAIN TRAIN=====')
         else:
             print('=====TEST TEST TEST=====')
 
-        print(filename)
-
-        # training_data = True if 'train' in os.path.basename(filename) else False
         datasamples = []
 
         print(f'Loading data from file: {filename}')

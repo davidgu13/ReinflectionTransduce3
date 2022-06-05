@@ -1,6 +1,5 @@
 from DataRelatedClasses.Vocabs.Vocab import Vocab
-from defaults import (UNK, UNK_CHAR, BEGIN_WORD, BEGIN_WORD_CHAR,
-    END_WORD, END_WORD_CHAR)
+from defaults import UNK, UNK_CHAR
 
 class VocabBox(object):
     def __init__(self, acts, encoding):
