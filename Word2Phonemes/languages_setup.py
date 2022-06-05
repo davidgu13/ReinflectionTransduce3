@@ -130,6 +130,17 @@ PHON_USE_ATTENTION, lang = False, 'kat'
 MAX_FEAT_SIZE = max([len(p2f_dict[p]) for p in langs_properties[lang][0].values() if p in p2f_dict]) # composite phonemes aren't counted in that list
 langPhonology = LanguageSetup(lang, langs_properties[lang][0], langs_properties[lang][1], langs_properties[lang][2])
 
+def convert(word, lang, output_format):
+    # Move this later to the callers, bc creating the objects over and over again is unefficient
+    assert output_format in ['f', 'p', 'f-attn']
+    PHON_USE_ATTENTION = output_format == 'f-attn'
+    mode = 'phonemes' if output_format == 'p' else 'features'
+    MAX_FEAT_SIZE = max([len(p2f_dict[p]) for p in langs_properties[lang][0].values() if
+                         p in p2f_dict])  # composite phonemes aren't counted in that list
+    langPhonology = LanguageSetup(lang, langs_properties[lang][0], langs_properties[lang][1], langs_properties[lang][2])
+    return langPhonology.word2phonemes(word, mode)
+
+
 if __name__ == '__main__':
     # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
     example_words = {'kat': 'არ მჭირდ-ებოდყეტ', 'swc': "magnchdhe-ong jwng'a", 'sqi': 'rdhëije rrçlldgj-ijdhegnjzh', 'lav': 'abscā t-raķkdzhēļšanģa',
