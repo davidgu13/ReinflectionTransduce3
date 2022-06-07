@@ -37,7 +37,7 @@ class LanguageSetup:
     Note: the class is implemented to fit to Georgian, Russian and several Indo-European languages. For languages with more complex phonology,
     this class might need to be extended/be inherited from.
     """
-    def __init__(self, lang_name: str, graphemes2phonemes:dict, manual_word2phonemes=None, manual_phonemes2word=None):
+    def __init__(self, lang_name: str, graphemes2phonemes:dict, max_phoneme_size: int, manual_word2phonemes=None, manual_phonemes2word=None):
         self._name = lang_name
         self._graphemes2phonemes = graphemes2phonemes
         self._graphemes2phonemes.update(dict(zip(punctuations, punctuations)))
@@ -48,6 +48,8 @@ class LanguageSetup:
 
         self._manual_word2phonemes = manual_word2phonemes
         self.manual_phonemes2word = manual_phonemes2word
+
+        self.max_phoneme_size = max_phoneme_size
 
     def get_lang_name(self): return self._name
     def get_lang_alphabet(self): return self._alphabet
