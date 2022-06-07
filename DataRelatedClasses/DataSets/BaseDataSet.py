@@ -27,15 +27,13 @@ class BaseDataSet(object):
         # filename (str):   tab-separated file containing morphology reinflection data:
         #                   lemma word feat1;feat2;feat3...
 
-        # Sketchy
         language = kwargs['language']
+        # Importing the static objects
         from Word2Phonemes.g2p_config import p2f_dict, langs_properties
         from Word2Phonemes.languages_setup import LanguageSetup
-
-        MAX_FEAT_SIZE = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if
-                             p in p2f_dict])  # composite phonemes aren't counted in that list
-        langPhonology = LanguageSetup(language, langs_properties[language][0], langs_properties[language][1],
-                                      langs_properties[language][2])
+        # Calculating and instantiating the dynamic objects
+        MAX_FEAT_SIZE = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
+        langPhonology = LanguageSetup(language, langs_properties[language][0], MAX_FEAT_SIZE, langs_properties[language][1], langs_properties[language][2])
 
         if isinstance(filename, list):
             filename, hallname = filename
