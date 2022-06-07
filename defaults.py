@@ -37,3 +37,5 @@ SANITY_SIZE = 100
 
 ### for docopt argument processing
 NULL_ARGS = 'None', 'none', 'no', '0'
+
+LANGUAGES_LIST = ['kat', 'swc', 'sqi', 'lav', 'bul', 'hun', 'tur', 'fin']

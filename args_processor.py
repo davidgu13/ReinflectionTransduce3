@@ -2,7 +2,7 @@ import os
 
 import dynet as dy
 
-from defaults import DATA_PATH, RESULTS_PATH, NULL_ARGS
+from defaults import DATA_PATH, RESULTS_PATH, NULL_ARGS, LANGUAGES_LIST
 from aligners import smart_align, dumb_align, cls_align
 import datasets
 import transducer
@@ -90,7 +90,11 @@ def process_paths(arguments):
 
 
 def process_data_arguments(arguments):
-    
+    train_file = arguments['TRAIN-PATH']
+    assert len([lang for lang in LANGUAGES_LIST if lang in train_file]) == 1
+    language = [lang for lang in LANGUAGES_LIST if lang in train_file][0]
+
+    # Find which of the list
     if arguments['--align-dumb']:
         aligner = dumb_align
     elif arguments['--align-cls']:
@@ -105,6 +109,7 @@ def process_data_arguments(arguments):
         dset = datasets.EditDataSet
 
     return {
+        'language'      : language,
         'dataset'       : dset,
         'aligner'       : aligner,
         'sigm2017format': arguments['--sigm2017format'],
