@@ -55,6 +55,9 @@ class PhonologicalDataSample(AlignedDataSample):
         elif tag_wraps == 'close':
             input = input + [END_WORD]
 
+        # Debug here: find out what is the value of every property, and where each one is used later in the code.
+        # Note: the entire pre-process of converting the lines to samples can be run independently of dynet and the rest of the flow! ("offline")
+
         # print features and input at a high verbosity level
         if verbose == 2:
             # print u'POS & features from {}, {}, {}: {}, {}'.format(feat_str, output_str, input_str, pos, feats)

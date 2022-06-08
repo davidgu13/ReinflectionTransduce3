@@ -305,7 +305,8 @@ class TrainingSession(object):
             # a batch of training samples with MLE?
             dy.renew_cg()
             batch_loss = []
-            for sample in batch: 
+            for sample in batch:
+                # Debug here: find how the Reinflection is expressed, by analyzing all the variables below.
                 in_feats = sample.in_pos, sample.in_feats
                 out_feats = sample.out_pos, sample.out_feats
                 loss, prediction, predicted_actions = self.transducer.transduce(
