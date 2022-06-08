@@ -299,6 +299,7 @@ class TrainingSession(object):
         self.model.save(kwargs['tmp_model_path'])
         print('saved initial model to {}'.format(kwargs['tmp_model_path']))
 
+        # Where is the Reinflection ???
         def MLE_batch_update(batch, *args):
             # How to update model parameters from
             # a batch of training samples with MLE?

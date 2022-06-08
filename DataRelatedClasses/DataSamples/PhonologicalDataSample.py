@@ -2,6 +2,8 @@ from DataRelatedClasses.utils import feats2string
 from defaults import BEGIN_WORD, END_WORD, SPECIAL_CHARS
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
 from DataRelatedClasses.DataSamples.BaseDataSample import BaseDataSample
+from DataRelatedClasses.DataSamples.AlignedDataSample import AlignedDataSample
+from Word2Phonemes.languages_setup import LanguageSetup
 
 def assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str):
     # encode features as integers
@@ -13,7 +15,7 @@ def assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str):
     assert not any(c in input_str for c in SPECIAL_CHARS), (input_str, SPECIAL_CHARS)
     assert not any(c in output_str for c in SPECIAL_CHARS), (output_str, SPECIAL_CHARS)
 
-class PhonologicalDataSample(BaseDataSample):
+class PhonologicalDataSample(AlignedDataSample):
     # data sample with encoded features
     def __init__(self, lemma, lemma_str, in_pos, in_feats, in_feat_str, word, word_str, out_pos, out_feats,
                  out_feat_str, tag_wraps, vocab, language):
@@ -21,17 +23,23 @@ class PhonologicalDataSample(BaseDataSample):
                          out_feat_str, tag_wraps, vocab)
         self.language = language
 
+    # Make sure this doesn't collide with the overridden method
     @classmethod
-    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row):
+    def from_row_to_phonemes(cls, vocab: VocabBox, tag_wraps: str, verbose, row, lang_phonology: LanguageSetup):
         in_feats_str, input_str, out_feats_str, output_str = row
         feats_delimiter = ';'
 
         assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str)
 
+        input_features = lang_phonology.word2phonemes(input_str, 'features')
+        output_features = lang_phonology.word2phonemes(output_str, 'features')
+        # Make sure they will be used
+
         # encode input characters
-        input = [vocab.char[c] for c in input_str]  # .split()] # todo oracle
+        input = [vocab.char[c] for c in input_features]  # .split()] # todo oracle
         # encode word
-        word = vocab.word[output_str]  # .replace(' ','')] # todo oracle
+        # word = vocab.word[output_str]  # .replace(' ','')] # todo oracle
+        word = vocab.word[output_features]  # .replace(' ','')] # todo oracle
 
         in_feats = in_feats_str.split(feats_delimiter)
         out_feats = out_feats_str.split(feats_delimiter)
@@ -54,4 +62,4 @@ class PhonologicalDataSample(BaseDataSample):
             print(f'input encoding: {input}')
 
         return cls(input, input_str, in_pos, in_feats, in_feats_str, word, output_str, out_pos, out_feats,
-                   out_feats_str, tag_wraps, vocab)
+                   out_feats_str, tag_wraps, vocab, lang_phonology)
