@@ -78,7 +78,7 @@ class LanguageSetup:
             features=[]
             for p in phonemes:
                 feats = [str(feature2idx[e]) for e in p2f_dict[p]]
-                feats.extend(['NA']*(MAX_FEAT_SIZE-len(feats)))
+                feats.extend(['NA']*(self.max_phoneme_size-len(feats)))
                 if PHON_USE_ATTENTION:
                     feats.append(p)
                 features.append(tuple(feats))
