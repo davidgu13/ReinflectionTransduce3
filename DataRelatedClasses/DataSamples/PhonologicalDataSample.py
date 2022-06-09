@@ -31,15 +31,15 @@ class PhonologicalDataSample(AlignedDataSample):
 
         assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str)
 
-        input_features = lang_phonology.word2phonemes(input_str, 'features')
-        output_features = lang_phonology.word2phonemes(output_str, 'features')
+        input_by_phon_features = lang_phonology.word2phonemes(input_str, 'features')
+        output_by_phon_features = lang_phonology.word2phonemes(output_str, 'features')
         # Make sure they will be used
 
         # encode input characters
-        input = [vocab.char[c] for c in input_features]  # .split()] # todo oracle
+        input = [vocab.char[c] for c in input_by_phon_features]  # .split()] # todo oracle
         # encode word
         # word = vocab.word[output_str]  # .replace(' ','')] # todo oracle
-        word = vocab.word[output_features]  # .replace(' ','')] # todo oracle
+        word = vocab.word[output_by_phon_features]  # .replace(' ','')] # todo oracle
 
         in_feats = in_feats_str.split(feats_delimiter)
         out_feats = out_feats_str.split(feats_delimiter)

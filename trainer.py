@@ -1,4 +1,3 @@
-
 import os
 import time
 import random
@@ -12,6 +11,8 @@ import numpy as np
 import util
 import datasets
 from defaults import SANITY_SIZE
+
+from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 
 OPTIMIZERS = {'ADAM'    : #dy.AdamTrainer,
                           lambda m: dy.AdamTrainer(m, alpha=0.0005,
@@ -206,7 +207,7 @@ def internal_eval_beam(batches, transducer, vocab,
 
 class TrainingSession(object):
     def __init__(self, model, transducer, vocab,
-                 train_data, dev_data,
+                 train_data: BaseDataSet, dev_data: BaseDataSet,
                  batch_size,
                  optimizer=None,
                  decbatch_size=None,
