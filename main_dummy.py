@@ -101,11 +101,17 @@ def Vocab_example():
 
     obj.printer()
 
-if __name__ == '__main__':
-    # Import EditVocab class. See how it looks for a naive g-g reinflection dataset
-    # Do the same for AlignedDataSample class.
-    # Do the same for EditDataset class.
-    # from DataRelatedClasses.EditVocab import EditVocab
-    # obj = EditVocab(pos_emb=False, avm_feat_format=False, param_tying=True, encoding=None)
+def dataset_example():
+    from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
+    from DataRelatedClasses.Vocabs.EditVocab import EditVocab
+    import os
 
-    Vocab_example()
+    dset = EditDataSet()
+
+    train_data = dset.from_file(os.path.join('..', '.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab())
+    print(f"train_data.vocab = {train_data.vocab}")
+
+if __name__ == '__main__':
+    # Vocab_example()
+
+    dataset_example()
