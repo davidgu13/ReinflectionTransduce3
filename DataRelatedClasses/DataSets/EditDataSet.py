@@ -9,7 +9,7 @@ class EditDataSet(AlignedDataSet):
     def __init__(self, try_reverse=False, substitution=False, copy_as_substitution=False,
                  reorder_deletes=True, freq_check=(0.1, 0.3), **kwargs):
         # "try reverse" only makes sense with dumb aligner
-        self.try_reverse = try_reverse and self.aligner == dumb_align  # @TODO Fix bug
+        self.try_reverse = try_reverse and self.aligner == dumb_align
         if self.try_reverse:
             print('USING STRING REVERSING WITH DUMB ALIGNMENT...')
             print('USING DEFAULT ALIGN SYMBOL ~')

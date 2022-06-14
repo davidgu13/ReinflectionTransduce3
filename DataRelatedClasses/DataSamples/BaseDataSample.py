@@ -56,9 +56,9 @@ class BaseDataSample(object):
         """
 
         # encode input characters
-        input = [vocab.char[c] for c in input_str]  # .split()] # todo oracle
+        input = [vocab.char[c] for c in input_str]  # .split()]
         # encode word
-        word = vocab.word[output_str]  # .replace(' ','')] # todo oracle
+        word = vocab.word[output_str]  # .replace(' ','')]
 
         in_feats = in_feats_str.split(feats_delimiter)
         out_feats = out_feats_str.split(feats_delimiter)
