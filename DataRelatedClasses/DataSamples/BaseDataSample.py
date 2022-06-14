@@ -1,3 +1,5 @@
+from typing import List
+
 from DataRelatedClasses.utils import feats2string
 from defaults import BEGIN_WORD, END_WORD, SPECIAL_CHARS
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
@@ -44,11 +46,11 @@ class BaseDataSample(object):
                f'Features: {self.out_feat_repr}, Wraps: {self.tag_wraps}'
 
     @classmethod
-    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row):
-        in_feats_str, input_str, out_feats_str, output_str = row
+    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row: List[str]):
+        in_feats_str, input_str, out_feats_str, output_str = row[0]
         feats_delimiter = ';'
         # feats_delimiter = u','
-
+        # region ignore
         assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str)
 
         """
@@ -79,6 +81,6 @@ class BaseDataSample(object):
             # print u'POS & features from {}, {}, {}: {}, {}'.format(feat_str, output_str, input_str, pos, feats)
             print(f'POS & features from {input_str}, {output_str}: {in_pos}, {in_feats} --> {out_pos}, {out_feats}')
             print(f'input encoding: {input}')
-
+        # endregion ignore
         return cls(input, input_str, in_pos, in_feats, in_feats_str, word, output_str, out_pos, out_feats,
                    out_feats_str, tag_wraps, vocab)

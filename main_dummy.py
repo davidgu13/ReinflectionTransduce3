@@ -88,6 +88,8 @@ Options:
 # print(f"docopt(__doc__) = \n{arguments}")
 # print()
 
+from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
+
 def Vocab_example():
     from DataRelatedClasses.Vocabs.Vocab import Vocab
     # obj = Vocab()
@@ -100,6 +102,23 @@ def Vocab_example():
     print(obj['f'])
 
     obj.printer()
+
+
+
+def dataset_example():
+    import pdb
+    pdb.set_trace()
+    # dset = EditDataSet(False, False, False)
+    print("\n\nPrinting info about the dataset")
+    train_data = EditDataSet.from_file(os.path.join('.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab())
+    print(f"train_data.vocab = {train_data.vocab}")
+    print(f"train_data.training_data = {train_data.training_data}")
+    print(f"train_data.length = {train_data.length}")
+    print(f"train_data.filename = {train_data.filename}")
+    print(f"type(train_data.samples) = {type(train_data.samples)}")
+    print(f"train_data.samples[5] = {train_data.samples[5]}")
+    print(f"train_data.tag_wraps = {train_data.tag_wraps}")
+    print(f"train_data.verbose = {train_data.verbose}")
 
 if __name__ == '__main__':
     # Import EditVocab class. See how it looks for a naive g-g reinflection dataset

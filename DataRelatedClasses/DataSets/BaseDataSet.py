@@ -2,12 +2,14 @@ import os
 import codecs
 from random import shuffle
 
+from typing import List
+
 from DataRelatedClasses.DataSamples.BaseDataSample import BaseDataSample
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
 
 class BaseDataSet(object):
     # class to hold an encoded dataset
-    def __init__(self, filename, samples: list, vocab: VocabBox, training_data: bool, tag_wraps: str, verbose: bool, **kwargs):
+    def __init__(self, filename, samples: List[BaseDataSample], vocab: VocabBox, training_data: bool, tag_wraps: str, verbose: bool, **kwargs):
         self.filename = filename
         self.samples = samples
         self.vocab = vocab
