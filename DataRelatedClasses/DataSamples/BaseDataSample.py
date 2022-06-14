@@ -1,6 +1,6 @@
 from typing import List
 
-from DataRelatedClasses.utils import feats2string
+from DataRelatedClasses.utils import feats2string, remove_pipe
 from defaults import BEGIN_WORD, END_WORD, SPECIAL_CHARS
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
 
@@ -46,10 +46,15 @@ class BaseDataSample(object):
                f'Features: {self.out_feat_repr}, Wraps: {self.tag_wraps}'
 
     @classmethod
-    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row: List[str]):
-        in_feats_str, input_str, out_feats_str, output_str = row[0]
-        feats_delimiter = ';'
-        # feats_delimiter = u','
+    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row: List[str], sigm2017format=True):
+        if sigm2017format:
+            input_str, in_feats_str, output_str, out_feats_str = row
+            input_str = remove_pipe(input_str)
+            output_str = remove_pipe(output_str)
+        else:
+            in_feats_str, input_str, out_feats_str, output_str = row
+
+        feats_delimiter = u';'
         # region ignore
         assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str)
 

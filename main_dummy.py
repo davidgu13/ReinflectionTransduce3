@@ -106,10 +106,31 @@ def dataset_example():
     from DataRelatedClasses.Vocabs.EditVocab import EditVocab
     import os
 
-    dset = EditDataSet()
-
-    train_data = dset.from_file(os.path.join('..', '.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab())
+    train_data = EditDataSet.from_file(os.path.join('..', '.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab(), **{'sigm2017format': False})
     print(f"train_data.vocab = {train_data.vocab}")
+
+    def print_object(o):
+        from pprint import pprint
+        pprint(vars(o))
+
+def kwargs_example():
+    def f(a, b, c=8, d=9):
+        print(f"\na = {a}")
+        print(f"b = {b}")
+        print(f"c = {c}")
+        print(f"d = {d}\n")
+
+    def f2(a,b, **kwargs):
+        f(a, b, **kwargs)
+
+    f(1,2,3,4)
+    f2(1,2)
+
+    kwargsss1 = {'c': 5, 'd': 6}
+    f2(1, 2, **kwargsss1)
+
+    kwargsss2 = {'c': 5, 'd': 6}
+    f2(1, 2, **kwargsss2)
 
 if __name__ == '__main__':
     # Vocab_example()
