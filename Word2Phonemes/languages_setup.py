@@ -37,7 +37,8 @@ class LanguageSetup:
     Note: the class is implemented to fit to Georgian, Russian and several Indo-European languages. For languages with more complex phonology,
     this class might need to be extended/be inherited from.
     """
-    def __init__(self, lang_name: str, graphemes2phonemes:dict, max_phoneme_size: int, manual_word2phonemes=None, manual_phonemes2word=None):
+    def __init__(self, lang_name: str, graphemes2phonemes:dict, max_phoneme_size: int,
+                 phon_use_attention: bool, manual_word2phonemes=None, manual_phonemes2word=None):
         self._name = lang_name
         self._graphemes2phonemes = graphemes2phonemes
         self._graphemes2phonemes.update(dict(zip(punctuations, punctuations)))
@@ -50,6 +51,7 @@ class LanguageSetup:
         self.manual_phonemes2word = manual_phonemes2word
 
         self.max_phoneme_size = max_phoneme_size
+        self.phon_use_attention = phon_use_attention
 
     def get_lang_name(self): return self._name
     def get_lang_alphabet(self): return self._alphabet
@@ -79,7 +81,7 @@ class LanguageSetup:
             for p in phonemes:
                 feats = [str(feature2idx[e]) for e in p2f_dict[p]]
                 feats.extend(['NA']*(self.max_phoneme_size-len(feats)))
-                if PHON_USE_ATTENTION:
+                if self.phon_use_attention:
                     feats.append(p)
                 features.append(tuple(feats))
             features = tuple_of_phon_tuples2phon_sequence(features)
@@ -100,7 +102,7 @@ class LanguageSetup:
             else:
                 graphemes = [self._phonemes2graphemes[p] for p in phonemes]
         else: # mode=='features'
-            if PHON_USE_ATTENTION:
+            if self.phon_use_attention:
                 phoneme_tokens = [f_tuple[-1] for f_tuple in phonemes]
             else:
                 phoneme_tokens = []
@@ -113,38 +115,28 @@ class LanguageSetup:
         return ''.join(graphemes)
 
 # For debugging purposes:
-def two_way_conversion(w):
-    print(f"PHON_USE_ATTENTION, lang = {PHON_USE_ATTENTION}, '{lang}'")
+def two_way_conversion(w, lang_phonology):
+    print(f"PHON_USE_ATTENTION, lang = false, '{lang}'")
     print(f"w = {w}")
-    ps = langPhonology.word2phonemes(w, mode='phonemes')
-    feats = langPhonology.word2phonemes(w, mode='features')
+    ps = lang_phonology.word2phonemes(w, mode='phonemes')
+    feats = lang_phonology.word2phonemes(w, mode='features')
     print(f"phonemes = {ps}\nfeatures = {feats}")
 
-    p2word = langPhonology.phonemes2word(ps, mode='phonemes')
+    p2word = lang_phonology.phonemes2word(ps, mode='phonemes')
     print(f"p2word: {p2word}\nED(w, p2word) = {editDistance(w, p2word)}")
 
     feats = [f.split(',') for f in ','.join(feats).split(',$,')]
-    f2word = langPhonology.phonemes2word(feats, mode='features')
+    f2word = lang_phonology.phonemes2word(feats, mode='features')
     print(f"f2word: {f2word}\nED(w, f2word) = {editDistance(w, f2word)}")
-
-PHON_USE_ATTENTION, lang = False, 'kat'
-
-MAX_FEAT_SIZE = max([len(p2f_dict[p]) for p in langs_properties[lang][0].values() if p in p2f_dict]) # composite phonemes aren't counted in that list
-langPhonology = LanguageSetup(lang, langs_properties[lang][0], langs_properties[lang][1], langs_properties[lang][2])
-
-def convert(word, lang, output_format):
-    # Move this later to the callers, bc creating the objects over and over again is unefficient
-    assert output_format in ['f', 'p', 'f-attn']
-    PHON_USE_ATTENTION = output_format == 'f-attn'
-    mode = 'phonemes' if output_format == 'p' else 'features'
-    MAX_FEAT_SIZE = max([len(p2f_dict[p]) for p in langs_properties[lang][0].values() if
-                         p in p2f_dict])  # composite phonemes aren't counted in that list
-    langPhonology = LanguageSetup(lang, langs_properties[lang][0], langs_properties[lang][1], langs_properties[lang][2])
-    return langPhonology.word2phonemes(word, mode)
-
 
 if __name__ == '__main__':
     # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
     example_words = {'kat': 'არ მჭირდ-ებოდყეტ', 'swc': "magnchdhe-ong jwng'a", 'sqi': 'rdhëije rrçlldgj-ijdhegnjzh', 'lav': 'abscā t-raķkdzhēļšanģa',
                      'bul': 'най-ясюногщжто', 'hun': 'hűdályiokró- l eéfdzgycsklynndzso nyoyaxy', 'tur': 'yığmalılksar mveğateğwypûrtâşsmış', 'fin': 'ixlmksnngvnk- èeé aatööböyynyissä'}
-    two_way_conversion(example_words[lang])
+    lang = 'kat'
+    max_features_size = max([len(p2f_dict[p]) for p in langs_properties[lang][0].values() if p in p2f_dict])
+    phon_use_attention = False
+    lang_phonology = LanguageSetup(lang, langs_properties[lang][0], max_features_size,
+                                   phon_use_attention, langs_properties[lang][1], langs_properties[lang][2])
+
+    two_way_conversion(example_words[lang], lang_phonology)
