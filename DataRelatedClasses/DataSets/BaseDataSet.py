@@ -32,8 +32,8 @@ class BaseDataSet(object):
         from Word2Phonemes.g2p_config import p2f_dict, langs_properties
         from Word2Phonemes.languages_setup import LanguageSetup
         # Calculating and instantiating the dynamic objects
-        MAX_FEAT_SIZE = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
-        langPhonology = LanguageSetup(language, langs_properties[language][0], MAX_FEAT_SIZE, langs_properties[language][1], langs_properties[language][2])
+        max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
+        phonology_converter = LanguageSetup(language, langs_properties[language][0], max_feat_size, False, langs_properties[language][1], langs_properties[language][2])
 
         if isinstance(filename, list):
             filename, hallname = filename
@@ -57,7 +57,7 @@ class BaseDataSet(object):
         with codecs.open(filename, encoding=encoding) as f:
             for row in f:
                 split_row = row.strip().split(delimiter)
-                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row)
+                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row, phonology_converter=phonology_converter)
                 datasamples.append(sample)
 
         if hallname:
