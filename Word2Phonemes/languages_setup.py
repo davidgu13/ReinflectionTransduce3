@@ -1,4 +1,5 @@
 from itertools import chain
+from typing import List, Union
 from Word2Phonemes.g2p_config import idx2feature, feature2idx, p2f_dict, f2p_dict, langs_properties, punctuations
 
 def joinit(iterable, delimiter):
@@ -57,7 +58,7 @@ class LanguageSetup:
     def get_lang_alphabet(self): return self._alphabet
     def get_lang_phonemes(self): return self._phonemes
 
-    def word2phonemes(self, word:str, mode:str) -> [[int]]:
+    def word2phonemes(self, word:str, mode:str) -> Union[List[List[int]], List[str]]:
         """
         Convert a word (sequence of graphemes) to a list of phoneme tuples.
         :param word: word
@@ -87,7 +88,7 @@ class LanguageSetup:
             features = tuple_of_phon_tuples2phon_sequence(features)
             return features
 
-    def phonemes2word(self, phonemes: [[str]], mode:str) -> str:
+    def _phonemes2word(self, phonemes: [[str]], mode:str) -> str:
         """
         Convert a list of phoneme tuples to a word (sequence of graphemes)
         :param phonemes: [(,,), (,,), (,,), ...] or (*IPA symbols*)
@@ -111,8 +112,27 @@ class LanguageSetup:
                     p = f2p_dict.get(f_tuple)
                     if p is None or p not in self._phonemes: p = "#" # the predicted bundle is illegal or doesn't exist in this language
                     phoneme_tokens.append(p)
-            graphemes = self.phonemes2word(phoneme_tokens, 'phonemes')
+            graphemes = self._phonemes2word(phoneme_tokens, 'phonemes')
         return ''.join(graphemes)
+
+    def phonemes2word(self, sequence: List[str], mode:str) -> str:
+        """
+        Wrapper for _phonemes2word.
+        sequence is list, of either features (['1', '2', '3', '$', '4', '5', 'NA', '$', ...]),
+        phonemes (['p', 't', 'o:', ...]), or combined (['1', '2', '3', 'p', '$', '4', '5', 'NA', 'o:', '$', ...])
+        """
+        assert mode in {'features', 'phonemes'}, f"Mode {mode} is invalid"
+
+        if mode == 'features':
+            phon_feats = ','.join(sequence).split(',$,')
+            if self.manual_phonemes2word and self.phon_use_attention:
+                new_sequence = self._phonemes2word([e.split(',')[-1] for e in phon_feats], mode='phonemes')
+            else:
+                new_sequence = self._phonemes2word([p.split(',') for p in phon_feats], mode='features')
+        else: # mode=='phonemes'
+            new_sequence = self._phonemes2word(sequence, mode='phonemes')
+
+        return new_sequence
 
 # For debugging purposes:
 def two_way_conversion(w, lang_phonology):

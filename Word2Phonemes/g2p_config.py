@@ -1,5 +1,6 @@
 __author__ = "David Guriel"
 import json
+import os
 
 place = ['labial', 'dental', 'alveolar', 'velarized-alveolar', 'post-alveolar', 'velar', 'uvular', 'glottal', 'palatal'] # 0-8
 manner = ['nasal', 'plosive', 'fricative', 'affricate', 'trill', 'tap', 'lateral', 'approximant', 'implosive'] # 9-17
@@ -16,7 +17,7 @@ idx2feature = dict(enumerate(phon_features))
 feature2idx = {v:k for k, v in idx2feature.items()} # => {'labial':0,...,'nasal':6,...,'front':18,'back':19}
 
 # for writing the dictionaries, use the command: json.dump({"vowels":p2f_vowels_dict, "consonants":p2f_consonants_dict}, open("phonemes.json","w",encoding='utf8'), indent=2)
-phonemes = json.load(open("phonemes.json", encoding='utf8'))
+phonemes = json.load(open(os.path.join("Word2Phonemes", "phonemes.json"), encoding='utf8'))
 p2f_consonants = {k:tuple(v) for k,v in phonemes['consonants'].items()}
 p2f_vowels     = {k:tuple(v) for k,v in phonemes['vowels'].items()}
 p2f_vowels.update({ k+'ː': v+('long',) for k,v in p2f_vowels.items()}) # account for long vowels (and double their number)
