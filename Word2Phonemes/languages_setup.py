@@ -110,7 +110,7 @@ class LanguageSetup:
                 for f_tuple in phonemes:
                     f_tuple = tuple(idx2feature[int(i)] for i in f_tuple if i != 'NA')
                     p = f2p_dict.get(f_tuple)
-                    if p is None or p not in self._phonemes: p = "#" # the predicted bundle is illegal or doesn't exist in this language
+                    if p is None or p not in self._phonemes: p = "*" # the predicted bundle is illegal or doesn't exist in this language
                     phoneme_tokens.append(p)
             graphemes = self._phonemes2word(phoneme_tokens, 'phonemes')
         return ''.join(graphemes)
@@ -136,7 +136,7 @@ class LanguageSetup:
 
 # For debugging purposes:
 def two_way_conversion(w, lang_phonology):
-    print(f"PHON_USE_ATTENTION, lang = false, '{lang}'")
+    print(f"PHON_USE_ATTENTION, lang = false, '{language}'")
     print(f"w = {w}")
     ps = lang_phonology.word2phonemes(w, mode='phonemes')
     feats = lang_phonology.word2phonemes(w, mode='features')
@@ -153,10 +153,10 @@ if __name__ == '__main__':
     # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
     example_words = {'kat': 'არ მჭირდ-ებოდყეტ', 'swc': "magnchdhe-ong jwng'a", 'sqi': 'rdhëije rrçlldgj-ijdhegnjzh', 'lav': 'abscā t-raķkdzhēļšanģa',
                      'bul': 'най-ясюногщжто', 'hun': 'hűdályiokró- l eéfdzgycsklynndzso nyoyaxy', 'tur': 'yığmalılksar mveğateğwypûrtâşsmış', 'fin': 'ixlmksnngvnk- èeé aatööböyynyissä'}
-    lang = 'kat'
-    max_features_size = max([len(p2f_dict[p]) for p in langs_properties[lang][0].values() if p in p2f_dict])
+    language = 'kat'
+    max_features_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])
     phon_use_attention = False
-    lang_phonology = LanguageSetup(lang, langs_properties[lang][0], max_features_size,
-                                   phon_use_attention, langs_properties[lang][1], langs_properties[lang][2])
+    lang_phonology = LanguageSetup(language, langs_properties[language][0], max_features_size,
+                                   phon_use_attention, langs_properties[language][1], langs_properties[language][2])
 
-    two_way_conversion(example_words[lang], lang_phonology)
+    two_way_conversion(example_words[language], lang_phonology)
