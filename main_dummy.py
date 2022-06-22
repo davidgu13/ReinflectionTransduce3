@@ -159,8 +159,32 @@ def phonology_example():
     # Note: for the last 3 languages, the conversion is not perfect. I specifically chose such
     # problematic examples, but most of the words *are* properly converted.
 
+def classes_example():
+    class A:
+        def __init__(self, x = None, encoding = 'utf8'):
+            self.x = x
+            self.encoding = encoding
+
+    class B:
+        def __init__(self, encoding):
+            self.a1 = A('1', encoding = encoding)
+            self.a2 = A(encoding = encoding)
+            self.a3 = A()
+
+    class C(B):
+        def __init__(self, y='2', encoding=None):
+            super(C, self).__init__(encoding)
+            self.y = y
+
+    c = C()
+    print(c.a1.encoding)
+    print(c.a2.encoding)
+    print(c.a3.encoding)
+
 
 if __name__ == '__main__':
     # Vocab_example()
     # dataset_example()
-    phonology_example()
+    # phonology_example()
+
+    classes_example()
