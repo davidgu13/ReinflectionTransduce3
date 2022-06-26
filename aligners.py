@@ -1,5 +1,4 @@
 #-*- coding: utf-8 -*-
-import align
 
 from defaults import ALIGN_SYMBOL
 
@@ -9,6 +8,7 @@ from defaults import ALIGN_SYMBOL
 
 def smart_align(pairs, align_symbol=ALIGN_SYMBOL,
                 iterations=150, burnin=5, lag=1, mode='crp', **kwargs):
+    import align
     return align.Aligner(pairs,
                          align_symbol=align_symbol,
                          iterations=iterations,
