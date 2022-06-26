@@ -106,7 +106,9 @@ def dataset_example():
     from DataRelatedClasses.Vocabs.EditVocab import EditVocab
     import os
 
-    train_data = EditDataSet.from_file(os.path.join('..', '.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab(), **{'sigm2017format': False})
+    from aligners import cls_align
+    kwargs =  {'sigm2017format': False, 'language': 'kat', 'aligner': cls_align, 'param-tying': True}
+    train_data = EditDataSet.from_file(os.path.join('..', '.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab(), **kwargs)
     print(f"train_data.vocab = {train_data.vocab}")
 
     def print_object(o):
@@ -184,7 +186,7 @@ def classes_example():
 
 if __name__ == '__main__':
     # Vocab_example()
-    # dataset_example()
+    dataset_example()
     # phonology_example()
 
-    classes_example()
+    # classes_example()

@@ -58,13 +58,19 @@ class BaseDataSample(object):
 
         assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str)
 
-        input_features = phonology_converter.word2phonemes(input_str, 'features')
-        output_features = phonology_converter.word2phonemes(output_str, 'features')
+        if phonology_converter is None:
+            # encode input characters
+            input = [vocab.char[c] for c in input_str]  # .split()]
+            # encode word
+            word = vocab.word[output_str]  # .replace(' ','')]
+        else:
+            input_features = phonology_converter.word2phonemes(input_str, 'features')
+            output_features = phonology_converter.word2phonemes(output_str, 'features')
 
-        # encode input characters
-        input = [vocab.char[c] for c in input_features]  # .split()]
-        # encode word
-        word = vocab.word[output_features]  # .replace(' ','')]
+            # encode input characters
+            input = [vocab.char[c] for c in input_features]  # .split()]
+            # encode word
+            word = vocab.word[output_features]  # .replace(' ','')]
 
         in_feats = in_feats_str.split(feats_delimiter)
         out_feats = out_feats_str.split(feats_delimiter)
