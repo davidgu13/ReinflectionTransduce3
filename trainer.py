@@ -581,7 +581,7 @@ class TrainingSession(object):
         
         if check_condition is False:
             check_condition = lambda e: False
-        elif check_condition == 2:  # max verbose flag... @TODO
+        elif check_condition == 2:  # max verbose flag...
             check_condition = lambda e: e > 0
 
         if train_until_accuracy and 0 < train_until_accuracy <= 1.:

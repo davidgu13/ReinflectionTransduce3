@@ -1,6 +1,9 @@
-from DataRelatedClasses.utils import feats2string
+from typing import List
+
+from DataRelatedClasses.utils import feats2string, remove_pipe
 from defaults import BEGIN_WORD, END_WORD, SPECIAL_CHARS
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
+from Word2Phonemes.languages_setup import LanguageSetup
 
 def assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str):
     # encode features as integers
@@ -44,25 +47,38 @@ class BaseDataSample(object):
                f'Features: {self.out_feat_repr}, Wraps: {self.tag_wraps}'
 
     @classmethod
-    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row):
-        in_feats_str, input_str, out_feats_str, output_str = row
-        feats_delimiter = ';'
-        # feats_delimiter = u','
+    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row: List[str], sigm2017format=True, phonology_converter:LanguageSetup=None):
+        if sigm2017format:
+            input_str, in_feats_str, output_str, out_feats_str = row
+            input_str = remove_pipe(input_str)
+            output_str = remove_pipe(output_str)
+        else:
+            in_feats_str, input_str, out_feats_str, output_str = row
+        feats_delimiter = u';'
 
         assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str)
 
-        # encode input characters
-        input = [vocab.char[c] for c in input_str]  # .split()] # todo oracle
-        # encode word
-        word = vocab.word[output_str]  # .replace(' ','')] # todo oracle
+        if phonology_converter is None:
+            # encode input characters
+            input = [vocab.char[c] for c in input_str]  # .split()]
+            # encode word
+            word = vocab.word[output_str]  # .replace(' ','')]
+        else:
+            input_features = phonology_converter.word2phonemes(input_str, 'features')
+            output_features = phonology_converter.word2phonemes(output_str, 'features')
+
+            # encode input characters
+            input = [vocab.char[c] for c in input_features]  # .split()]
+            # encode word
+            word = vocab.word[output_features]  # .replace(' ','')]
 
         in_feats = in_feats_str.split(feats_delimiter)
         out_feats = out_feats_str.split(feats_delimiter)
 
-        in_pos, out_pos = None, None
-
         in_feats = [vocab.feat[f] for f in set(in_feats)]
         out_feats = [vocab.feat[f] for f in set(out_feats)]
+
+        in_pos, out_pos = None, None
 
         # wrap encoded input with (encoded) boundary tags
         if tag_wraps == 'both':

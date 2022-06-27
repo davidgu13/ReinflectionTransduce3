@@ -87,14 +87,14 @@ from docopt import docopt
 import dynet as dy
 import numpy as np
 import random
-import sys, codecs
+# import sys, codecs
 from args_processor import process_arguments
-from datasets import BaseDataSet, PCFPDataSet
-from trainer import TrainingSession, internal_eval, dev_external_eval, test_external_eval
-
-sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
-sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
-sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
+from datasets import BaseDataSet
+from trainer import TrainingSession, dev_external_eval, test_external_eval
+#
+# sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
+# sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
+# sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
 
 
 if __name__ == "__main__":

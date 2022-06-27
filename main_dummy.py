@@ -106,12 +106,87 @@ def dataset_example():
     from DataRelatedClasses.Vocabs.EditVocab import EditVocab
     import os
 
-    dset = EditDataSet()
-
-    train_data = dset.from_file(os.path.join('..', '.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab())
+    from aligners import cls_align
+    kwargs =  {'sigm2017format': False, 'language': 'kat', 'aligner': cls_align, 'param-tying': True}
+    train_data = EditDataSet.from_file(os.path.join('..', '.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab(), **kwargs)
     print(f"train_data.vocab = {train_data.vocab}")
+
+    def print_object(o):
+        from pprint import pprint
+        pprint(vars(o))
+
+def kwargs_example():
+    def f(a, b, c=8, d=9):
+        print(f"\na = {a}")
+        print(f"b = {b}")
+        print(f"c = {c}")
+        print(f"d = {d}\n")
+
+    def f2(a,b, **kwargs):
+        f(a, b, **kwargs)
+
+    f(1,2,3,4)
+    f2(1,2)
+
+    kwargsss1 = {'c': 5, 'd': 6}
+    f2(1, 2, **kwargsss1)
+
+    kwargsss2 = {'c': 5, 'd': 6}
+    f2(1, 2, **kwargsss2)
+
+def phonology_example():
+    # This example is taken from the baseline model implementation (PhonologyReinflection), as sanity checks.
+    from Word2Phonemes.g2p_config import p2f_dict, langs_properties
+    from Word2Phonemes.languages_setup import LanguageSetup
+
+    # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
+    example_words = {'kat': 'არ მჭირდ-ებოდყეტ', 'swc': "magnchdhe-ong jwng'a", 'sqi': 'rdhëije rrçlldgj-ijdhegnjzh', 'lav': 'abscā t-raķkdzhēļšanģa',
+                     'bul': 'най-ясюногщжто', 'hun': 'hűdályiokró- l eéfdzgycsklynndzso nyoyaxy', 'tur': 'yığmalılksar mveğateğwypûrtâşsmış', 'fin': 'ixlmksnngvnk- èeé aatööböyynyissä'}
+
+    language = 'kat'
+    word = example_words[language]
+
+    phon_use_attention = False
+    max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
+
+    converter = LanguageSetup(language, langs_properties[language][0], max_feat_size, phon_use_attention, langs_properties[language][1], langs_properties[language][2])
+
+    print(f"word = {word}")
+    features_word = converter.word2phonemes(word, 'features')
+    print(f"g -> f => {features_word}")
+    reconstructed_word = converter.phonemes2word(features_word, 'features')
+    print(f"f -> g => {reconstructed_word}")
+
+    if word == reconstructed_word: print(f"Perfect conversion!")
+    # Note: for the last 3 languages, the conversion is not perfect. I specifically chose such
+    # problematic examples, but most of the words *are* properly converted.
+
+def classes_example():
+    class A:
+        def __init__(self, x = None, encoding = 'utf8'):
+            self.x = x
+            self.encoding = encoding
+
+    class B:
+        def __init__(self, encoding):
+            self.a1 = A('1', encoding = encoding)
+            self.a2 = A(encoding = encoding)
+            self.a3 = A()
+
+    class C(B):
+        def __init__(self, y='2', encoding=None):
+            super(C, self).__init__(encoding)
+            self.y = y
+
+    c = C()
+    print(c.a1.encoding)
+    print(c.a2.encoding)
+    print(c.a3.encoding)
+
 
 if __name__ == '__main__':
     # Vocab_example()
-
     dataset_example()
+    # phonology_example()
+
+    # classes_example()

@@ -119,9 +119,9 @@ def process_data_arguments(arguments):
         'iterations'    : int(arguments['--iterations']),
         'substitution'  : arguments['--substitution'],
         'copy_as_substitution' : arguments['--copy-as-substitution'],
-        'pos_emb'       : arguments['--pos-emb'],  # @TODO goes into model_params too...
-        'avm_feat_format' : arguments['--avm-feat-format'],  # @TODO goes into model_params too...
-        'param_tying'   : arguments['--param-tying'],  # @TODO goes into model_params too...
+        'pos_emb'       : arguments['--pos-emb'],
+        'avm_feat_format' : arguments['--avm-feat-format'],
+        'param_tying'   : arguments['--param-tying'],
         'tag_wraps'     : arguments['--tag-wraps'] if arguments['--tag-wraps'] not in NULL_ARGS else None
     }
 
