@@ -1,21 +1,23 @@
 #-*- coding: utf-8 -*-
-
 from defaults import ALIGN_SYMBOL
+from typing import Callable, List, Tuple, Union
+from itertools import chain
+from more_itertools import split_at
 
-#############################################################
-# ALIGNERS
-#############################################################
+def split_iterable(iterable, delimiter):
+    return split_at(iterable, lambda e: e == delimiter)
 
-def smart_align(pairs, align_symbol=ALIGN_SYMBOL,
-                iterations=150, burnin=5, lag=1, mode='crp', **kwargs):
-    import align
-    return align.Aligner(pairs,
-                         align_symbol=align_symbol,
-                         iterations=iterations,
-                         burnin=burnin,
-                         lag=lag,
-                         mode=mode).alignedpairs
+def _join_iterable(iterable, delimiter):
+    # Inserts delimiters between elements of some iterable object.
+    it = iter(iterable)
+    yield next(it)
+    for x in it:
+        yield delimiter
+        yield x
 
+# The inverse of split_iterable
+def join_iterable(iterable, delimiter='$') -> List:
+    return list(chain(*_join_iterable(iterable, (delimiter,))))
 
 def dumb_align(pairs, align_symbol=ALIGN_SYMBOL, multiword=True, **kwargs):
     def _dumb_align(ins, outs):
@@ -101,13 +103,12 @@ if __name__ == "__main__":
                     ('집', '집'), ('sing~~~~~', 'will sing'), ('белый~ хлеб~', 'белого хлеба'))
     cls_targets = (('walk~~', 'walked'), ('fliegen', 'flog~~~'), ('береза', 'берёз~'), ('집', '집'),
                ('~~~~~sing', 'will sing'), ('белый~ хлеб~', 'белого хлеба'))
-    for alignment, aligned_pairs, targets in (('DUMB NO MULTI', dumb_align(pairs, multiword=False), dumb_targets_nomulti),
-                                              ('DUMB MULTI', dumb_align(pairs, multiword=True), dumb_targets),
-                                              ('CLS', cls_align(pairs), cls_targets)):
-        print('Alignment: {}'.format(alignment))
-        print('Pairs:         {}'.format(seq_of_pairs_unicode(pairs)))
-        print('Aligned pairs: {}'.format(seq_of_pairs_unicode(aligned_pairs)))
-        print('Targets:       {}'.format(seq_of_pairs_unicode(targets)))
-        for a, t in zip(aligned_pairs, targets):
-            assert a == t, 'Mismatch: {} and {}'.format(a, t)
-        print('All matches.')
+
+    alignment, aligned_pairs, targets = 'CLS', cls_align(pairs), cls_targets
+    print('Alignment: {}'.format(alignment))
+    print('Pairs:         {}'.format(seq_of_pairs_unicode(pairs)))
+    print('Aligned pairs: {}'.format(seq_of_pairs_unicode(aligned_pairs)))
+    print('Targets:       {}'.format(seq_of_pairs_unicode(targets)))
+    for a, t in zip(aligned_pairs, targets):
+        assert a == t, 'Mismatch: {} and {}'.format(a, t)
+    print('All matches.')
