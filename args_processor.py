@@ -1,10 +1,8 @@
 import os
-
-import dynet as dy
-
 from defaults import DATA_PATH, RESULTS_PATH, NULL_ARGS, LANGUAGES_LIST
 from aligners import smart_align, dumb_align, cls_align
 import datasets
+from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
 import transducer
 import hacm
 import haem
@@ -104,9 +102,9 @@ def process_data_arguments(arguments):
         
     if arguments['--transducer'] in ['hacm', 'hard'] and \
         not (arguments['--substitution'] or arguments['--copy-as-substitution']):
-        dset = datasets.MinimalDataSet
+        dset = datasets.MinimalDataSet # Careful, might be buggy
     else:
-        dset = datasets.EditDataSet
+        dset = EditDataSet
 
     return {
         'language'      : language,

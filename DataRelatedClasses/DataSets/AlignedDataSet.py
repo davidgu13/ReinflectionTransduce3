@@ -12,14 +12,21 @@ class AlignedDataSet(BaseDataSet):
 
         # wrapping lemma / word with word boundary tags
         if self.tag_wraps == 'both':
-            self.wrapper = lambda s: BEGIN_WORD_CHAR + s + END_WORD_CHAR
+            if kwargs['use_phonology']:
+                self.wrapper = lambda s: [BEGIN_WORD_CHAR] + s + [END_WORD_CHAR]
+                self.unwrapper = lambda s: s[1:-1]
+            else:
+                self.wrapper = lambda s: BEGIN_WORD_CHAR + s + END_WORD_CHAR
         elif self.tag_wraps == 'close':
             self.wrapper = lambda s: s + END_WORD_CHAR
         else:
             self.wrapper = lambda s: s
 
         print(f'Started aligning with {self.aligner} aligner...')
-        aligned_pairs = self.aligner([(s.lemma_str, s.word_str) for s in self.samples], **kwargs)
+        if kwargs['use_phonology']:
+            aligned_pairs = self.aligner([(s.lemma, s.word_phonological) for s in self.samples], **kwargs)
+        else:
+            aligned_pairs = self.aligner([(s.lemma_str, s.word_str) for s in self.samples], **kwargs)
         print('Finished aligning.')
 
         print('Started building oracle actions...')
