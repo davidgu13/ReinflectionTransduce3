@@ -18,7 +18,7 @@ def assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str):
 class BaseDataSample(object):
     # data sample with encoded features
     def __init__(self, lemma, lemma_str, in_pos, in_feats, in_feat_str, word,
-                 word_str, out_pos, out_feats, out_feat_str, tag_wraps, vocab):
+                 word_str, word_phonological, out_pos, out_feats, out_feat_str, tag_wraps, vocab):
         self.vocab = vocab  # vocab of unicode strings
 
         self.lemma = lemma  # list of encoded lemma characters
@@ -26,6 +26,7 @@ class BaseDataSample(object):
 
         self.word = word  # encoded word
         self.word_str = word_str  # unicode string
+        self.word_phonological = word_phonological
 
         self.in_pos = in_pos  # encoded input pos feature
         self.in_feats = in_feats  # set of encoded input features
@@ -63,14 +64,16 @@ class BaseDataSample(object):
             input = [vocab.char[c] for c in input_str]  # .split()]
             # encode word
             word = vocab.word[output_str]  # .replace(' ','')]
+            word_phonological = None
         else:
             input_features = phonology_converter.word2phonemes(input_str, 'features')
-            output_features = phonology_converter.word2phonemes(output_str, 'features')
+            output_features = tuple(phonology_converter.word2phonemes(output_str, 'features'))
 
             # encode input characters
             input = [vocab.char[c] for c in input_features]  # .split()]
             # encode word
             word = vocab.word[output_features]  # .replace(' ','')]
+            word_phonological = [vocab.char[c] for c in output_features]
 
         in_feats = in_feats_str.split(feats_delimiter)
         out_feats = out_feats_str.split(feats_delimiter)
@@ -92,5 +95,5 @@ class BaseDataSample(object):
             print(f'POS & features from {input_str}, {output_str}: {in_pos}, {in_feats} --> {out_pos}, {out_feats}')
             print(f'input encoding: {input}')
 
-        return cls(input, input_str, in_pos, in_feats, in_feats_str, word, output_str, out_pos, out_feats,
+        return cls(input, input_str, in_pos, in_feats, in_feats_str, word, output_str, word_phonological, out_pos, out_feats,
                    out_feats_str, tag_wraps, vocab)

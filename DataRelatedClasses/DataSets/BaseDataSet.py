@@ -17,23 +17,29 @@ class BaseDataSet(object):
         self.training_data = training_data
         self.tag_wraps = tag_wraps
         self.verbose = verbose
+        self.phonology_converter = kwargs.get('phonology_converter') # None if kwargs['use_phonology] is None, otherwise of type LanguageSetup
 
     def __len__(self):
         return self.length
 
     @classmethod
-    def from_file(cls, filename, vocab, DataSample=BaseDataSample,
+    def from_file(cls, filename, vocab: VocabBox, DataSample=BaseDataSample,
                   encoding='utf8', delimiter='\t', tag_wraps='both', verbose=True, **kwargs):
         # filename (str):   tab-separated file containing morphology reinflection data:
         #                   lemma word feat1;feat2;feat3...
 
-        language = kwargs['language']
-        # Importing the static objects
-        from Word2Phonemes.g2p_config import p2f_dict, langs_properties
-        from Word2Phonemes.languages_setup import LanguageSetup
-        # Calculating and instantiating the dynamic objects
-        max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
-        phonology_converter = LanguageSetup(language, langs_properties[language][0], max_feat_size, False, langs_properties[language][1], langs_properties[language][2])
+        kwargs['use_phonology'] = kwargs.get('language') is not None
+        if kwargs['use_phonology']:
+            language = kwargs['language']
+            # Importing the static objects
+            from Word2Phonemes.g2p_config import p2f_dict, langs_properties
+            from Word2Phonemes.languages_setup import LanguageSetup
+            # Calculating and instantiating the dynamic objects
+            max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
+            phonology_converter = LanguageSetup(language, langs_properties[language][0], max_feat_size, False, langs_properties[language][1], langs_properties[language][2])
+        else:
+            phonology_converter = None
+        kwargs['phonology_converter'] = phonology_converter
 
         if isinstance(filename, list):
             filename, hallname = filename
@@ -57,7 +63,8 @@ class BaseDataSet(object):
         with codecs.open(filename, encoding=encoding) as f:
             for row in f:
                 split_row = row.strip().split(delimiter)
-                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row, phonology_converter=phonology_converter)
+                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row,
+                         sigm2017format=kwargs['sigm2017format'], phonology_converter=phonology_converter)
                 datasamples.append(sample)
 
         if hallname:
@@ -75,5 +82,7 @@ class BaseDataSet(object):
                     datasamples.append(sample)
             print(f'hallucinated data added. training expanded from {old_len} to {len(datasamples)} examples')
 
+        from Word2Phonemes.g2p_config import feature2idx
+        kwargs['space_character'] = vocab.char.w2i.get(str(feature2idx[' ']))
         return cls(filename=filename, samples=datasamples, vocab=vocab,
                    training_data=training_data, tag_wraps=tag_wraps, verbose=verbose, **kwargs)

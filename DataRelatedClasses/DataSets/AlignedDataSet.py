@@ -12,8 +12,7 @@ class AlignedDataSet(BaseDataSet):
 
         # wrapping lemma / word with word boundary tags
         if self.tag_wraps == 'both':
-            self.wrapper = lambda \
-                s: BEGIN_WORD_CHAR + s + END_WORD_CHAR
+            self.wrapper = lambda s: BEGIN_WORD_CHAR + s + END_WORD_CHAR
         elif self.tag_wraps == 'close':
             self.wrapper = lambda s: s + END_WORD_CHAR
         else:
