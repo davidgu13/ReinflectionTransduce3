@@ -19,17 +19,11 @@ def _join_iterable(iterable, delimiter):
 def join_iterable(iterable, delimiter='$') -> List:
     return list(chain(*_join_iterable(iterable, (delimiter,))))
 
-def dumb_align(pairs, align_symbol=ALIGN_SYMBOL, multiword=True, **kwargs):
-    def _dumb_align(ins, outs):
-        length_diff = len(ins) - len(outs)
-        if length_diff > 0:
-            outs += align_symbol * length_diff
-        elif length_diff < 0:
-            ins += align_symbol * abs(length_diff)
-        return ins, outs
-    return multiword_align(pairs, _dumb_align, multiword)
 
-def multiword_align(pairs, _align, multiword):
+def cls_align(pairs: Union[List[Tuple[str, str]], Tuple], multiword=True, **kwargs): # todo oracle: multiword=False
+    return multiword_align(pairs, _cls_align, multiword, **kwargs)
+
+def multiword_align(pairs: List[Tuple[str, str]], _align: Callable, multiword, **kwargs):
     if multiword:
         alignedpairs = []
         for ins, outs in pairs:
@@ -51,44 +45,62 @@ def multiword_align(pairs, _align, multiword):
         alignedpairs = [_align(*p) for p in pairs]
     return alignedpairs
 
-def cls_align(pairs, align_symbol=ALIGN_SYMBOL, multiword=True, **kwargs): # todo oracle: multiword=False
-    def _cls_align(ins, outs):
-        # ins = ins.split()   # todo oracle
-        # outs = outs.split() # todo oracle
-        len_ins  = len(ins)
-        len_outs = len(outs)
-        LCSuff = [[0 for k in range(len_outs+1)] for l in range(len_ins+1)]
-        cls_length = 0
-        pointer = 0, 0
-        for i in range(len_ins + 1):
-            for j in range(len_outs + 1):
-                if i == 0 or j == 0:
-                    LCSuff[i][j] == 0
-                elif ins[i-1] == outs[j-1]:
-                    LCSuff[i][j] = LCSuff[i-1][j-1] + 1
-                    if LCSuff[i][j] > cls_length:
-                        cls_length = LCSuff[i][j]
-                        pointer = i-1, j-1
-                else:
-                    LCSuff[i][j] = 0
-        aligned_ins, aligned_outs = ins, outs
-        # cls'es should be aligned, the rest aligned and padded
-        # pad from the left
-        offset = pointer[0] - pointer[1]
-        if offset > 0:
-            # the cls starts later in ins, and so outs
-            # needs to be padded.
-            aligned_outs = align_symbol * offset + aligned_outs # todo oracle [align_symbol]
-        elif offset < 0:
-            aligned_ins = align_symbol * abs(offset) + aligned_ins # todo oracle [align_symbol]
-        # pad from the right
-        length_diff = len_ins - len_outs - offset
+def _cls_align(ins, outs, align_symbol:str=ALIGN_SYMBOL):
+    # ins = ins.split()   # todo oracle
+    # outs = outs.split() # todo oracle
+    len_ins  = len(ins)
+    len_outs = len(outs)
+    LCSuff = [[0 for _ in range(len_outs + 1)] for _ in range(len_ins + 1)]
+    cls_length = 0
+    pointer = 0, 0
+    for i in range(len_ins + 1):
+        for j in range(len_outs + 1):
+            if i == 0 or j == 0:
+                LCSuff[i][j] == 0
+            elif ins[i-1] == outs[j-1]:
+                LCSuff[i][j] = LCSuff[i-1][j-1] + 1
+                if LCSuff[i][j] > cls_length:
+                    cls_length = LCSuff[i][j]
+                    pointer = i-1, j-1
+            else:
+                LCSuff[i][j] = 0
+    aligned_ins, aligned_outs = ins, outs
+    # cls'es should be aligned, the rest aligned and padded
+    # pad from the left
+    offset = pointer[0] - pointer[1]
+    if offset > 0:
+        # the cls starts later in ins, and so outs need to be padded.
+        aligned_outs = align_symbol * offset + aligned_outs # todo oracle [align_symbol]
+    elif offset < 0:
+        aligned_ins = align_symbol * abs(offset) + aligned_ins # todo oracle [align_symbol]
+    # pad from the right
+    length_diff = len_ins - len_outs - offset
+    if length_diff > 0:
+        aligned_outs += align_symbol * length_diff # todo oracle [align_symbol]
+    elif length_diff < 0:
+        aligned_ins += align_symbol * abs(length_diff) # todo oracle [align_symbol]
+    return aligned_ins, aligned_outs
+
+
+def smart_align(pairs, align_symbol=ALIGN_SYMBOL,
+                iterations=150, burnin=5, lag=1, mode='crp', **kwargs):
+    import align
+    return align.Aligner(pairs,
+                         align_symbol=align_symbol,
+                         iterations=iterations,
+                         burnin=burnin,
+                         lag=lag,
+                         mode=mode).alignedpairs
+
+def dumb_align(pairs, align_symbol=ALIGN_SYMBOL, multiword=True, **kwargs):
+    def _dumb_align(ins, outs):
+        length_diff = len(ins) - len(outs)
         if length_diff > 0:
-            aligned_outs += align_symbol * length_diff # todo oracle [align_symbol]
+            outs += align_symbol * length_diff
         elif length_diff < 0:
-            aligned_ins += align_symbol * abs(length_diff) # todo oracle [align_symbol]
-        return aligned_ins, aligned_outs
-    return multiword_align(pairs, _cls_align, multiword)
+            ins += align_symbol * abs(length_diff)
+        return ins, outs
+    return multiword_align(pairs, _dumb_align, multiword)
 
 if __name__ == "__main__":
     
