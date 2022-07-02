@@ -27,27 +27,40 @@ def multiword_align(pairs: List[Tuple[str, str]], _align: Callable, multiword, *
     if multiword:
         alignedpairs = []
         for ins, outs in pairs:
-            if ins.count(' ') == outs.count(' '):
-                # assume multiword expression
-                aligned_ins = []
-                aligned_outs = []
-                for subins, subouts in zip(ins.split(' '), outs.split(' ')):
-                    # align each subunit separately
-                    aligned_subins, aligned_subouts = _align(subins, subouts)
-                    aligned_ins.append(aligned_subins)
-                    aligned_outs.append(aligned_subouts)
-                aligned_ins  = ' '.join(aligned_ins)
-                aligned_outs = ' '.join(aligned_outs)
-            else:
-                aligned_ins, aligned_outs = _align(ins, outs)
+
+            if type(ins) == str:
+                if ins.count(' ') == outs.count(' '):
+                    # assume multiword expression
+                    aligned_ins, aligned_outs = [], []
+                    for subins, subouts in zip(ins.split(' '), outs.split(' ')):
+                        aligned_subins, aligned_subouts = _align(subins, subouts)
+                        aligned_ins.append(aligned_subins)
+                        aligned_outs.append(aligned_subouts)
+                    aligned_ins, aligned_outs = ' '.join(aligned_ins), ' '.join(aligned_outs)
+                else:
+                    aligned_ins, aligned_outs = _align(ins, outs)
+            else: # type(pairs[0][0]) == list
+                SPACE_CHARACTER = kwargs['space_character']
+                if SPACE_CHARACTER is None:
+                    assert outs.count(' ') == 0
+                if ins.count(SPACE_CHARACTER) == outs.count(SPACE_CHARACTER):
+                    # assume multiword expression
+                    aligned_ins, aligned_outs = [], []
+                    ins_iterator, outs_iterator = split_iterable(ins, SPACE_CHARACTER), split_iterable(outs, SPACE_CHARACTER)
+                    for subins, subouts in zip(ins_iterator, outs_iterator):
+                        aligned_subins, aligned_subouts = _align(subins, subouts, [ALIGN_SYMBOL])
+                        aligned_ins.append(aligned_subins)
+                        aligned_outs.append(aligned_subouts)
+                    aligned_ins, aligned_outs = join_iterable(aligned_ins, SPACE_CHARACTER), join_iterable(aligned_outs, SPACE_CHARACTER)
+                else:
+                    aligned_ins, aligned_outs = _align(ins, outs)
+
             alignedpairs.append((aligned_ins, aligned_outs))
     else:
         alignedpairs = [_align(*p) for p in pairs]
     return alignedpairs
 
 def _cls_align(ins, outs, align_symbol:str=ALIGN_SYMBOL):
-    # ins = ins.split()   # todo oracle
-    # outs = outs.split() # todo oracle
     len_ins  = len(ins)
     len_outs = len(outs)
     LCSuff = [[0 for _ in range(len_outs + 1)] for _ in range(len_ins + 1)]
@@ -64,6 +77,7 @@ def _cls_align(ins, outs, align_symbol:str=ALIGN_SYMBOL):
                     pointer = i-1, j-1
             else:
                 LCSuff[i][j] = 0
+
     aligned_ins, aligned_outs = ins, outs
     # cls'es should be aligned, the rest aligned and padded
     # pad from the left
@@ -73,12 +87,14 @@ def _cls_align(ins, outs, align_symbol:str=ALIGN_SYMBOL):
         aligned_outs = align_symbol * offset + aligned_outs # todo oracle [align_symbol]
     elif offset < 0:
         aligned_ins = align_symbol * abs(offset) + aligned_ins # todo oracle [align_symbol]
+
     # pad from the right
     length_diff = len_ins - len_outs - offset
     if length_diff > 0:
         aligned_outs += align_symbol * length_diff # todo oracle [align_symbol]
     elif length_diff < 0:
         aligned_ins += align_symbol * abs(length_diff) # todo oracle [align_symbol]
+
     return aligned_ins, aligned_outs
 
 
