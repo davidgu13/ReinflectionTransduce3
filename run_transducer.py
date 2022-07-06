@@ -89,7 +89,7 @@ import numpy as np
 import random
 # import sys, codecs
 from args_processor import process_arguments
-from datasets import BaseDataSet
+from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 from trainer import TrainingSession, dev_external_eval, test_external_eval
 #
 # sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)

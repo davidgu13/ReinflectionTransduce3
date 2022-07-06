@@ -3,7 +3,7 @@
 import dynet as dy
 import numpy as np
 
-from datasets import action2string
+from DataRelatedClasses.utils import action2string
 from defaults import STEP, BEGIN_WORD, END_WORD, UNK, MAX_ACTION_SEQ_LEN
 from stack_lstms import Encoder
 from transducer import Transducer

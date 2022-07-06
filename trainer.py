@@ -9,7 +9,7 @@ import dynet as dy
 import numpy as np
 
 import util
-import datasets
+from DataRelatedClasses.utils import action2string
 from defaults import SANITY_SIZE
 
 from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
@@ -110,8 +110,8 @@ def internal_eval(batches, transducer, vocab,
                 # of the previous epoch or its an error
                 if predicted_actions != previous_predicted_actions[i] or not correct_prediction:
                     #
-                    print('BEFORE:    ', datasets.action2string(previous_predicted_actions[i], vocab))
-                    print('THIS TIME: ', datasets.action2string(predicted_actions, vocab))
+                    print('BEFORE:    ', action2string(previous_predicted_actions[i], vocab))
+                    print('THIS TIME: ', action2string(predicted_actions, vocab))
                     print('TRUE:      ', sample.act_repr)
                     print('PRED:      ', prediction)
                     print('WORD:      ', sample.word_str)
@@ -188,8 +188,8 @@ def internal_eval_beam(batches, transducer, vocab,
                 # of the previous epoch or its an error
                 if predicted_actions != previous_predicted_actions[i] or not correct_prediction:
                     #
-                    print('BEFORE:    ', datasets.action2string(previous_predicted_actions[i], vocab))
-                    print('THIS TIME: ', datasets.action2string(predicted_actions, vocab))
+                    print('BEFORE:    ', action2string(previous_predicted_actions[i], vocab))
+                    print('THIS TIME: ', action2string(predicted_actions, vocab))
                     print('TRUE:      ', sample.act_repr)
                     print('PRED:      ', prediction)
                     print('WORD:      ', sample.word_str)
@@ -272,7 +272,7 @@ class TrainingSession(object):
             print('saved reloaded model as best model to {}'.format(tmp_model_path))
         
     def action2string(self, acts):
-        return datasets.action2string(acts, self.vocab)
+        return action2string(acts, self.vocab)
 
     def dev_eval(self, check_condition=True):
         # call internal_eval with dev batches
