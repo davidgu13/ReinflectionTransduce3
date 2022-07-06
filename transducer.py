@@ -3,10 +3,8 @@
 import dynet as dy
 import numpy as np
 
-from defaults import (STEP, COPY, DELETE, BEGIN_WORD, END_WORD, UNK,
-                      END_WORD_CHAR, MAX_ACTION_SEQ_LEN)
+from defaults import COPY, DELETE, END_WORD, UNK, MAX_ACTION_SEQ_LEN
 from stack_lstms import Encoder
-from datasets import action2string
 
 NONLINS = {'tanh' : dy.tanh, 'ReLU' : dy.rectify}
 
@@ -40,22 +38,8 @@ class Transducer(object):
         self.NUM_FEATS = self.vocab.feat_train
         self.NUM_POS   = self.vocab.pos_train
         self.NUM_ACTS  = self.vocab.act_train
-        # an enumeration of all encoded insertions
-        # print "\n\nself.vocab = " + str(self.vocab) # ########### My addition ###########
-        # print "type(self.vocab) = " + str(type(self.vocab)) + " \n" # ########### My addition ###########
-        #        
-        # print "self.vocab.char = " + str(self.vocab.char) # ########### My addition ###########
-        # print "self.vocab.char_train = " + str(self.vocab.char_train) + " \n" # ########### My addition ###########
-        # print "self.vocab.feat = " + str(self.vocab.feat) # ########### My addition ###########
-        # print "self.vocab.feat_train = " + str(self.vocab.feat_train) + " \n" # ########### My addition ###########
-        # print "self.vocab.pos = " + str(self.vocab.pos) # ########### My addition ###########
-        # print "self.vocab.pos_train = " + str(self.vocab.pos_train) + " \n" # ########### My addition ###########
-        # print "self.vocab.act = " + str(self.vocab.act) # ########### My addition ###########
-        # print "self.vocab.act_train = " + str(self.vocab.act_train) + " \n" # ########### My addition ###########
-        #        
-        # print "self.vocab.w2i_acts = " + str(self.vocab.w2i_acts) # ########### My addition ###########
-        # print "self.vocab.number_specials = " + str(self.vocab.number_specials) + " \n\n" # ########### My addition ###########
 
+        # an enumeration of all encoded insertions
         self.INSERTS   = list(range(self.vocab.number_specials, self.NUM_ACTS))
         
         # report stats

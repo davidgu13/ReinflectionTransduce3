@@ -23,7 +23,7 @@ class Vocab(object):
 
         return Vocab(w2i, encoding=encoding)
 
-    def __getitem__(self, word):
+    def __getitem__(self, word) -> int:
         # encodes the word if it is not in vocab
         if self.encoding:
             word = word.decode(self.encoding)
