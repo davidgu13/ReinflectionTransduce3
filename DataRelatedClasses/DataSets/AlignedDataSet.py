@@ -1,6 +1,6 @@
 from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 from DataRelatedClasses.DataSamples.AlignedDataSample import AlignedDataSample
-from defaults import BEGIN_WORD_CHAR, END_WORD_CHAR
+from defaults import BEGIN_WORD_CHAR, END_WORD_CHAR, BEGIN_WORD, END_WORD
 from aligners import smart_align
 from typing import List
 
@@ -23,9 +23,8 @@ class AlignedDataSet(BaseDataSet):
 
         # wrapping lemma / word with word boundary tags
         if self.tag_wraps == 'both':
-            if kwargs['use_phonology']:
-                self.wrapper = lambda s: [BEGIN_WORD_CHAR] + s + [END_WORD_CHAR]
-                self.unwrapper = lambda s: s[1:-1]
+            if use_phonology:
+                self.wrapper = lambda s: [BEGIN_WORD] + s + [END_WORD]
             else:
                 self.wrapper = lambda s: BEGIN_WORD_CHAR + s + END_WORD_CHAR
         elif self.tag_wraps == 'close':
