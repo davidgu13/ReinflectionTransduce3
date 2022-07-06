@@ -92,9 +92,9 @@ class EditDataSet(AlignedDataSet):
             actions = reordered_actions + suffix
 
         if self.verbose == 2:
-            print(f'{word}\n{action2string(actions, self.vocab)}\n{lemma}\n')
+            print(f"{word}\n{action2string(actions, self.vocab)}\n{lemma}\n") # action2string = '==========|დით>'
 
-        sample.set_actions(actions, lemma, word)
+        sample.set_actions(actions, lemma, word) # actions = [4, ..., 4, 3, 5, 12, 11, 2]
 
     @classmethod
     def from_file(cls, filename, vocab=None, **kwargs):
