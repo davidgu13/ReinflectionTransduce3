@@ -48,7 +48,8 @@ def multiword_align(pairs: List[Tuple[str, str]], _align: Callable, multiword, *
                     aligned_ins, aligned_outs = [], []
                     ins_iterator, outs_iterator = split_iterable(ins, SPACE_CHARACTER), split_iterable(outs, SPACE_CHARACTER)
                     for subins, subouts in zip(ins_iterator, outs_iterator):
-                        aligned_subins, aligned_subouts = _align(subins, subouts, [ALIGN_SYMBOL])
+                        aligned_subins, aligned_subouts = _align(subins, subouts, [ALIGN_SYMBOL])  # fixed the "to-do oracle [align_symbol]"
+
                         aligned_ins.append(aligned_subins)
                         aligned_outs.append(aligned_subouts)
                     aligned_ins, aligned_outs = join_iterable(aligned_ins, SPACE_CHARACTER), join_iterable(aligned_outs, SPACE_CHARACTER)
@@ -84,16 +85,16 @@ def _cls_align(ins, outs, align_symbol:str=ALIGN_SYMBOL):
     offset = pointer[0] - pointer[1]
     if offset > 0:
         # the cls starts later in ins, and so outs need to be padded.
-        aligned_outs = align_symbol * offset + aligned_outs # todo oracle [align_symbol]
+        aligned_outs = align_symbol * offset + aligned_outs
     elif offset < 0:
-        aligned_ins = align_symbol * abs(offset) + aligned_ins # todo oracle [align_symbol]
+        aligned_ins = align_symbol * abs(offset) + aligned_ins
 
     # pad from the right
     length_diff = len_ins - len_outs - offset
     if length_diff > 0:
-        aligned_outs += align_symbol * length_diff # todo oracle [align_symbol]
+        aligned_outs += align_symbol * length_diff
     elif length_diff < 0:
-        aligned_ins += align_symbol * abs(length_diff) # todo oracle [align_symbol]
+        aligned_ins += align_symbol * abs(length_diff)
 
     return aligned_ins, aligned_outs
 
