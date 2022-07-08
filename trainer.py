@@ -99,7 +99,7 @@ def internal_eval(batches, transducer, vocab,
 
             # evaluation
             correct_prediction = False
-            if (prediction in vocab.word and vocab.word.w2i[prediction] == sample.word):
+            if prediction in vocab.word and vocab.word.w2i[prediction] == sample.word:
                 correct_prediction = True
                 number_correct += 1
             
