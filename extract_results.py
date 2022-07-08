@@ -1,8 +1,8 @@
 # This is a Python3 script for extracting the runs results to an Excel file, including final dev and test accuracies.
 import os
-from os.path import join, isdir, basename
-from itertools import product
 import re
+from itertools import product
+from os.path import basename, isdir, join
 
 def are_substrings_in_string(target_string: str, substrings: tuple) -> bool:
     return all([substring in target_string for substring in substrings])

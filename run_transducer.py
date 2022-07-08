@@ -82,15 +82,17 @@ Options:
 """
 
 
-from docopt import docopt
+import random
 
 import dynet as dy
 import numpy as np
-import random
+from docopt import docopt
+
+from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 # import sys, codecs
 from args_processor import process_arguments
-from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 from trainer import TrainingSession, dev_external_eval, test_external_eval
+
 #
 # sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
 # sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)

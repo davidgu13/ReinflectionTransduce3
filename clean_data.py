@@ -4,8 +4,8 @@ This is a script for cleaning the Reinflection samples of every language. It is 
 Note that this script is relevant for files of Unimorph 3.0, and will not necessarily be needed for later releases.
 """
 import os
-from os.path import join, isdir, isfile
 from itertools import product
+from os.path import isdir, isfile, join
 from shutil import copy2
 
 datasets_path = join(os.getcwd(), ".data", "Reinflection")

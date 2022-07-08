@@ -1,4 +1,3 @@
-import os
 import codecs
 
 from defaults import EVALM_PATH

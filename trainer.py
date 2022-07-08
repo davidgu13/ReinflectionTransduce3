@@ -1,18 +1,16 @@
-import os
-import time
 import random
-import progressbar
-import editdistance
+import time
 from collections import Counter
 
 import dynet as dy
+import editdistance
 import numpy as np
+import progressbar
 
 import util
+from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 from DataRelatedClasses.utils import action2string
 from defaults import SANITY_SIZE
-
-from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 
 OPTIMIZERS = {'ADAM'    : #dy.AdamTrainer,
                           lambda m: dy.AdamTrainer(m, alpha=0.0005,
@@ -712,7 +710,7 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
     # BEAM-SEARCH-BASED PREDICTIONS FROM THIS MODEL 
     if beam_widths:
         print('\nDecoding with beam search...')
-        import hacm, hacm_sub, hard
+        import hacm_sub
         if not callable(getattr(transducer, "beam_search_decode", None)) or \
             isinstance(transducer, hacm_sub.MinimalTransducer):
             print('Transducer does not implement beam search.')

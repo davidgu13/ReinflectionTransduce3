@@ -3,7 +3,7 @@
 import dynet as dy
 import numpy as np
 
-from defaults import COPY, DELETE, END_WORD, UNK, MAX_ACTION_SEQ_LEN
+from defaults import COPY, DELETE, END_WORD, MAX_ACTION_SEQ_LEN, UNK
 from stack_lstms import Encoder
 
 NONLINS = {'tanh' : dy.tanh, 'ReLU' : dy.rectify}

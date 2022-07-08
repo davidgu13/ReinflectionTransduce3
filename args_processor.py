@@ -1,14 +1,16 @@
 import os
-from defaults import DATA_PATH, RESULTS_PATH, NULL_ARGS, LANGUAGES_LIST
-from aligners import smart_align, dumb_align, cls_align
+
 import datasets
-from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
-import transducer
 import hacm
+import hacm_sub
 import haem
 import haem_sub
-import hacm_sub
 import hard
+import transducer
+from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
+from aligners import cls_align, dumb_align, smart_align
+from defaults import DATA_PATH, LANGUAGES_LIST, NULL_ARGS, RESULTS_PATH
+
 
 def process_paths(arguments):
     

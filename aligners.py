@@ -1,8 +1,9 @@
 #-*- coding: utf-8 -*-
-from defaults import ALIGN_SYMBOL
-from typing import Callable, List, Tuple, Union
 from itertools import chain
 from more_itertools import split_at
+from typing import Callable, List, Tuple, Union
+
+from defaults import ALIGN_SYMBOL
 
 def split_iterable(iterable, delimiter):
     return split_at(iterable, lambda e: e == delimiter)

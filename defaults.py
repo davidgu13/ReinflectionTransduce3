@@ -1,5 +1,4 @@
 import os
-import re
 
 SRC_PATH = os.path.dirname(__file__)
 RESULTS_PATH = os.path.join(SRC_PATH, 'Results')
