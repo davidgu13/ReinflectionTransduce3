@@ -86,8 +86,6 @@ import random
 import dynet as dy
 import numpy as np
 from docopt import docopt
-
-from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 # import sys, codecs
 
 from args_processor import process_arguments
@@ -124,7 +122,7 @@ if __name__ == "__main__":
 
     if paths['test_path']:
         # no alignments, hence BaseDataSet
-        test_data = BaseDataSet.from_file(paths['test_path'], vocab=VOCAB, **data_arguments)
+        test_data = data_arguments['dataset'].from_file(paths['test_path'], vocab=VOCAB, **data_arguments)
         # test_data = PCFPDataSet.from_file(paths['test_path'], vocab=VOCAB, **data_arguments)
     else:
         test_data = None

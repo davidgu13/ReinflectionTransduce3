@@ -307,8 +307,7 @@ class TrainingSession(object):
             for sample in batch:
                 in_feats = sample.in_pos, sample.in_feats
                 out_feats = sample.out_pos, sample.out_feats
-                loss, prediction, predicted_actions = self.transducer.transduce(
-                    sample.lemma, in_feats, out_feats, sample.actions, external_cg=True)
+                loss, _, _ = self.transducer.transduce(sample.lemma, in_feats, out_feats, sample.actions, external_cg=True)
                 batch_loss.extend(loss)
             batch_loss = -dy.average(batch_loss)
             if l2: batch_loss += l2 * self.transducer.l2_norm(with_embeddings=False)
