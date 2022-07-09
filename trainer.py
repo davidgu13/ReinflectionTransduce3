@@ -304,7 +304,6 @@ class TrainingSession(object):
             dy.renew_cg()
             batch_loss = []
             for sample in batch:
-                # Debug here: find how the Reinflection is expressed, by analyzing all the variables below.
                 in_feats = sample.in_pos, sample.in_feats
                 out_feats = sample.out_pos, sample.out_feats
                 loss, prediction, predicted_actions = self.transducer.transduce(
@@ -565,7 +564,6 @@ class TrainingSession(object):
                      train_until_accuracy=None,
                      optimizer=None,
                      **kwargs):
-
         if optimizer is None:
             optimizer = self.optimizer
         self.trainer = optimizer(self.model)
@@ -707,7 +705,7 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
     # write out greedy predictions and scores
     util.external_eval(pred_path('greedy'), gold_path, batches, predictions, sigm2017format)
 
-    # BEAM-SEARCH-BASED PREDICTIONS FROM THIS MODEL 
+    # BEAM-SEARCH-BASED PREDICTIONS FROM THIS MODEL
     if beam_widths:
         print('\nDecoding with beam search...')
         import hacm_sub
@@ -730,8 +728,7 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
     return greedy_accuracy
 
 
-def dev_external_eval(batches, transducer, vocab, paths,
-                      data_arguments, model_arguments, optim_arguments):
+def dev_external_eval(batches, transducer, vocab, paths, data_arguments, model_arguments, optim_arguments):
     
     accuracy =  withheld_data_eval("dev", batches, transducer, vocab, optim_arguments['beam-widths'],
                        paths['dev_output'], paths['dev_path'], data_arguments['sigm2017format'])

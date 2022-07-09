@@ -287,7 +287,6 @@ class Transducer(object):
         count = 0
 
         if show_oracle_actions:
-            # print "\n\n#1 Something is printed here:"
             print()
             print(''.join([self.vocab.act.i2w[a] for a in oracle_actions]))
             print(''.join([self.vocab.char.i2w[a] for a in lemma]))
@@ -295,8 +294,6 @@ class Transducer(object):
         while len(action_history) <= MAX_ACTION_SEQ_LEN:
             
             if show_oracle_actions:
-                # print "\n#2 Something is printed here:"
-
                 print('Action: ', count, self.vocab.act.i2w[action_history[-1]])
                 print('Encoder length, char: ', lemma, len(encoder), self.vocab.char.i2w[encoder.s[-1][-1]])
                 print('word: ', ''.join(word))
@@ -325,7 +322,6 @@ class Transducer(object):
             else:
                 h = classifier_input
             logits = W_act * h + b_act
-            # print "\n\nThe valid actions are: " + str(valid_actions) + " \n\n" # ########### My addition ###########
             log_probs = dy.log_softmax(logits, valid_actions)
             # print "MADE IT UNTIL HERE, oracle_actions = {}\n".format(oracle_actions)
             # get action (argmax, sampling, or use oracle actions)
@@ -343,11 +339,8 @@ class Transducer(object):
             else:
                 action = oracle_actions.pop()
 
-            # print 'al hapanim 2'
             losses.append(dy.pick(log_probs, action))
             action_history.append(action)
-            # print 'al hapanim 3'
-
             #print 'action, log_probs: ', action, self.vocab.act.i2w[action], losses[-1].scalar_value(), log_probs.npvalue()
             
             # execute the action to update the transducer state

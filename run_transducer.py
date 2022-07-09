@@ -83,21 +83,19 @@ Options:
 
 
 import random
-
 import dynet as dy
 import numpy as np
 from docopt import docopt
 
 from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 # import sys, codecs
+
 from args_processor import process_arguments
 from trainer import TrainingSession, dev_external_eval, test_external_eval
 
-#
 # sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
 # sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
 # sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
-
 
 if __name__ == "__main__":
 
@@ -133,7 +131,6 @@ if __name__ == "__main__":
     model = None
 
     if not optim_arguments['eval']:
-
         print('Building model for training... Transducer: {}'.format(model_arguments['transducer']))
         model = dy.Model()
         transducer = model_arguments['transducer'](model, VOCAB, **model_arguments)
@@ -145,6 +142,7 @@ if __name__ == "__main__":
         if paths['reload_path']:
             training_session.reload(paths['reload_path'], paths['tmp_model_path'])
 
+        # region handle pretraining
         if optim_arguments['pretrain-epochs'] or optim_arguments['pretrain-until']:
             pretrain_epochs = optim_arguments['pretrain-epochs']
             train_until_accuracy = optim_arguments['pretrain-until']
@@ -167,6 +165,7 @@ if __name__ == "__main__":
             training_session.reload(paths['tmp_model_path'])
         else:
             print('No supervised pretraining.')
+        # endregion handle pretraining
 
         if optim_arguments['mode'] == 'mle':
             training_session.run_MLE_training(
