@@ -10,6 +10,7 @@ import transducer
 from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
 from aligners import cls_align, dumb_align, smart_align
 from defaults import DATA_PATH, LANGUAGES_LIST, NULL_ARGS, RESULTS_PATH
+from typing import Callable
 
 
 def process_paths(arguments):
@@ -57,8 +58,8 @@ def process_paths(arguments):
     tmp_model_path  = os.path.join(results_file_path, 'f.model')
     stats_file_path = os.path.join(results_file_path, 'f.stats')
     # dec: this is decoding -- greedy or beam
-    dev_output  = lambda dec: os.path.join(results_file_path, 'f.{}.dev.'.format(dec))
-    test_output = lambda dec: os.path.join(results_file_path, 'f.{}.test.'.format(dec))
+    dev_output: Callable[[str], str]  = lambda dec: os.path.join(results_file_path, 'f.{}.dev.'.format(dec))
+    test_output: Callable[[str], str] = lambda dec: os.path.join(results_file_path, 'f.{}.test.'.format(dec))
 
     if arguments['--reload-path'] == 'self':
         # flag to reload from result directory

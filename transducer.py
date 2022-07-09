@@ -74,6 +74,8 @@ class Transducer(object):
                             'POS_EMB'        : self.pos_emb,
                             'AVM_FEATS'      : self.avm_feat_format}
 
+        self.kwargs = kwargs
+
     def _features(self, model):
         # trainable embeddings for characters and actions
         self.CHAR_LOOKUP = model.add_lookup_parameters((self.NUM_CHARS, self.CHAR_DIM))
@@ -362,9 +364,8 @@ class Transducer(object):
                 # 1. Append inserted character to the output word
                 char_ = self.vocab.act.i2w[action]
                 word.append(char_)
-            # print 'al hapanim 4'
-        # print 'al hapanim 5'        
-        word = ''.join(word)
+
+        word = (',' if self.kwargs['use_phonology'] else '').join(word)
         return losses, word, action_history
 
     def beam_search_decode(self, lemma, in_feats, out_feats, external_cg=True, unk_avg=True, beam_width=4):

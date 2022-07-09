@@ -113,6 +113,7 @@ if __name__ == "__main__":
     VOCAB = train_data.vocab
     VOCAB.train_cutoff()  # knows that entities before come from train set
     batch_size = optim_arguments['decbatch-size']
+    model_arguments['use_phonology'] = train_data.phonology_converter is not None
 
     if paths['dev_path']:
         dev_data = data_arguments['dataset'].from_file(paths['dev_path'], vocab=VOCAB, **data_arguments)

@@ -11,6 +11,7 @@ import util
 from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
 from DataRelatedClasses.utils import action2string
 from defaults import SANITY_SIZE
+from typing import Callable
 
 OPTIMIZERS = {'ADAM'    : #dy.AdamTrainer,
                           lambda m: dy.AdamTrainer(m, alpha=0.0005,
@@ -690,7 +691,7 @@ class TrainingSession(object):
 
 
 def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
-                       pred_path, gold_path, sigm2017format):
+                       pred_path: Callable[[str], str], gold_path, sigm2017format):
 
     """Runs internal greedy and beam-search evaluations as well as
        launches external eval script. Returns greedy accuracy (hm...?)"""
