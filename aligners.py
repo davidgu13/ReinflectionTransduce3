@@ -55,14 +55,14 @@ def multiword_align(pairs: List[Tuple[str, str]], _align: Callable, multiword, *
                         aligned_outs.append(aligned_subouts)
                     aligned_ins, aligned_outs = join_iterable(aligned_ins, SPACE_CHARACTER), join_iterable(aligned_outs, SPACE_CHARACTER)
                 else:
-                    aligned_ins, aligned_outs = _align(ins, outs)
+                    aligned_ins, aligned_outs = _align(ins, outs, [ALIGN_SYMBOL])
 
             alignedpairs.append((aligned_ins, aligned_outs))
     else:
         alignedpairs = [_align(*p) for p in pairs]
     return alignedpairs
 
-def _cls_align(ins, outs, align_symbol:str=ALIGN_SYMBOL):
+def _cls_align(ins, outs, align_symbol: Union[str, List[str]]=ALIGN_SYMBOL):
     len_ins  = len(ins)
     len_outs = len(outs)
     LCSuff = [[0 for _ in range(len_outs + 1)] for _ in range(len_ins + 1)]
