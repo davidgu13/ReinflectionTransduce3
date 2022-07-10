@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import List, Union
+from typing import List, Union, Tuple
 from Word2Phonemes.g2p_config import idx2feature, feature2idx, p2f_dict, f2p_dict, langs_properties, punctuations
 
 def joinit(iterable, delimiter):
@@ -115,7 +115,7 @@ class LanguageSetup:
             graphemes = self._phonemes2word(phoneme_tokens, 'phonemes')
         return ''.join(graphemes)
 
-    def phonemes2word(self, sequence: List[str], mode:str) -> str:
+    def phonemes2word(self, sequence: Union[List[str], Tuple[str]], mode:str) -> str:
         """
         Wrapper for _phonemes2word.
         sequence is list, of either features (['1', '2', '3', '$', '4', '5', 'NA', '$', ...]),

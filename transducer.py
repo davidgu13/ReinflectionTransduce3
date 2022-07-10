@@ -365,7 +365,10 @@ class Transducer(object):
                 char_ = self.vocab.act.i2w[action]
                 word.append(char_)
 
-        word = (',' if self.kwargs['use_phonology'] else '').join(word)
+        if self.kwargs['use_phonology']:
+            word = tuple(word)
+        else:
+            word = ''.join(word)
         return losses, word, action_history
 
     def beam_search_decode(self, lemma, in_feats, out_feats, external_cg=True, unk_avg=True, beam_width=4):
