@@ -90,6 +90,7 @@ from docopt import docopt
 
 from args_processor import process_arguments
 from trainer import TrainingSession, dev_external_eval, test_external_eval
+from extract_results import extract_from_features_predictions
 
 # sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
 # sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
@@ -224,3 +225,11 @@ if __name__ == "__main__":
         test_batches = [test_data.samples[i:i+batch_size] for i in range(0, len(test_data), batch_size)]
         test_external_eval(test_batches, transducer, VOCAB, paths,
                            optim_arguments['beam-widths'], data_arguments['sigm2017format'])
+
+    # if model_arguments['use_phonology']:
+    #     # Reevaluate at graphemes level
+    #     # Open the test predictions file, and apply extract_from_features_predictions. Write
+    #     # in f.stats the 3 measures.
+    #
+    #
+    # print()
