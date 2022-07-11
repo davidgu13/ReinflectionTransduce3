@@ -742,3 +742,5 @@ def test_external_eval(batches, transducer, vocab, paths, beam_widths, sigm2017f
                                   paths['test_output'], paths['test_path'], sigm2017format)
     with open(paths['stats_file_path'], 'a+') as f:
         f.write(f"TEST ACCURACY (internal evaluation) = {accuracy}\n")
+
+    return accuracy

@@ -223,13 +223,21 @@ if __name__ == "__main__":
     if test_data:
         print('=========TEST EVALUATION:=========')
         test_batches = [test_data.samples[i:i+batch_size] for i in range(0, len(test_data), batch_size)]
-        test_external_eval(test_batches, transducer, VOCAB, paths,
+        test_accuracy = test_external_eval(test_batches, transducer, VOCAB, paths,
                            optim_arguments['beam-widths'], data_arguments['sigm2017format'])
+    else:
+        test_accuracy = -1
 
-    # if model_arguments['use_phonology']:
-    #     # Reevaluate at graphemes level
-    #     # Open the test predictions file, and apply extract_from_features_predictions. Write
-    #     # in f.stats the 3 measures.
-    #
-    #
-    # print()
+    if model_arguments['use_phonology']:
+        # Reevaluate at graphemes level: Read the test predictions file and apply extract_from_features_predictions.
+        # Write in f.stats all the 4 measures.
+        test_predictions_file = paths['test_output']('greedy') + 'predictions'
+        stats_file = paths['stats_file_path']
+
+        graphemes_accuracy, features_accuracy, graphemes_ed, features_ed = extract_from_features_predictions(test_predictions_file)
+
+        assert features_accuracy == test_accuracy
+        with open(paths['stats_file_path'], 'a+') as f:
+            f.write(f"Evaluating based on the predictions file:\n")
+            f.write(f"Features-level: Accuracy: {features_accuracy}, Edit Distance: {features_ed}")
+            f.write(f"Graphemes-level: Accuracy: {graphemes_accuracy}, Edit Distance: {graphemes_ed}\n")
