@@ -8,6 +8,7 @@ WrittenInPython2.7/
 *.docx
 .data
 Results
+runs_scripts
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
