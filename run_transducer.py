@@ -90,7 +90,7 @@ from docopt import docopt
 
 from args_processor import process_arguments
 from trainer import TrainingSession, dev_external_eval, test_external_eval
-from extract_results import extract_from_features_predictions
+from util import evaluate_features_predictions, write_generalized_measures
 
 # sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
 # sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
@@ -109,10 +109,11 @@ if __name__ == "__main__":
 
     print('Loading data... Dataset: {}'.format(data_arguments['dataset']))
     train_data = data_arguments['dataset'].from_file(paths['train_path'], **data_arguments)
+    phonology_converter = train_data.phonology_converter
     VOCAB = train_data.vocab
     VOCAB.train_cutoff()  # knows that entities before come from train set
     batch_size = optim_arguments['decbatch-size']
-    model_arguments['use_phonology'] = train_data.phonology_converter is not None
+    model_arguments['use_phonology'] = phonology_converter is not None
 
     if paths['dev_path']:
         dev_data = data_arguments['dataset'].from_file(paths['dev_path'], vocab=VOCAB, **data_arguments)
@@ -228,16 +229,11 @@ if __name__ == "__main__":
     else:
         test_accuracy = -1
 
-    if model_arguments['use_phonology']:
-        # Reevaluate at graphemes level: Read the test predictions file and apply extract_from_features_predictions.
-        # Write in f.stats all the 4 measures.
+    if model_arguments['use_phonology'] and test_accuracy != -1:
+        # Reevaluate at graphemes level: Read the test predictions file and evaluate the features predictions.
+        # Then, write in f.stats all the 4 measures.
         test_predictions_file = paths['test_output']('greedy') + 'predictions'
-        stats_file = paths['stats_file_path']
+        measures = evaluate_features_predictions(test_predictions_file, phonology_converter)
 
-        graphemes_accuracy, features_accuracy, graphemes_ed, features_ed = extract_from_features_predictions(test_predictions_file)
-
-        assert features_accuracy == test_accuracy
-        with open(paths['stats_file_path'], 'a+') as f:
-            f.write(f"Evaluating based on the predictions file:\n")
-            f.write(f"Features-level: Accuracy: {features_accuracy}, Edit Distance: {features_ed}")
-            f.write(f"Graphemes-level: Accuracy: {graphemes_accuracy}, Edit Distance: {graphemes_ed}\n")
+        assert measures[1] == test_accuracy # the return of test_external_eval equals to the (features-level) predictions' evaluation
+        write_generalized_measures(paths['stats_file_path'], measures)
