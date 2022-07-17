@@ -108,7 +108,7 @@ class LanguageSetup:
             else:
                 phoneme_tokens = []
                 for f_tuple in phonemes:
-                    f_tuple = tuple(idx2feature[int(i)] for i in f_tuple if i != 'NA')
+                    f_tuple = tuple([idx2feature[int(i)] for i in f_tuple if i != 'NA'])
                     p = f2p_dict.get(f_tuple)
                     if p is None or p not in self._phonemes: p = "*" # the predicted bundle is illegal or doesn't exist in this language
                     phoneme_tokens.append(p)
@@ -124,6 +124,8 @@ class LanguageSetup:
         assert mode in {'features', 'phonemes'}, f"Mode {mode} is invalid"
 
         if mode == 'features':
+            if sequence == () or sequence == []: return '' # edge case: empty prediction
+            if sequence[-1] == '$': sequence = sequence[:-1] # ignore '$' at the prediction's end.
             phon_feats = ','.join(sequence).split(',$,')
             if self.manual_phonemes2word and self.phon_use_attention:
                 new_sequence = self._phonemes2word([e.split(',')[-1] for e in phon_feats], mode='phonemes')
