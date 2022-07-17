@@ -136,6 +136,18 @@ class LanguageSetup:
 
         return new_sequence
 
+    @classmethod
+    def create_phonology_converter(cls, language: str, phon_use_attention: bool = False):
+        # Calculating and instantiating the dynamic objects
+        max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
+
+        return cls(language,
+                   langs_properties[language][0],
+                   max_feat_size,
+                   phon_use_attention,
+                   langs_properties[language][1],
+                   langs_properties[language][2])
+
 # For debugging purposes:
 def two_way_conversion(w, lang_phonology):
     print(f"PHON_USE_ATTENTION, lang = false, '{language}'")

@@ -1,11 +1,11 @@
 import os
 import codecs
 from random import shuffle
-
 from typing import List
 
 from DataRelatedClasses.DataSamples.BaseDataSample import BaseDataSample
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
+from Word2Phonemes.languages_setup import LanguageSetup
 
 class BaseDataSet(object):
     # class to hold an encoded dataset
@@ -31,12 +31,8 @@ class BaseDataSet(object):
         kwargs['use_phonology'] = kwargs.get('language') is not None
         if kwargs['use_phonology']:
             language = kwargs['language']
-            # Importing the static objects
-            from Word2Phonemes.g2p_config import p2f_dict, langs_properties
-            from Word2Phonemes.languages_setup import LanguageSetup
-            # Calculating and instantiating the dynamic objects
-            max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
-            phonology_converter = LanguageSetup(language, langs_properties[language][0], max_feat_size, False, langs_properties[language][1], langs_properties[language][2])
+            phon_use_attention = False
+            phonology_converter = LanguageSetup.create_phonology_converter(language, phon_use_attention)
         else:
             phonology_converter = None
         kwargs['phonology_converter'] = phonology_converter

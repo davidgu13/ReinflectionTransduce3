@@ -136,7 +136,6 @@ def kwargs_example():
 
 def phonology_example():
     # This example is taken from the baseline model implementation (PhonologyReinflection), as sanity checks.
-    from Word2Phonemes.g2p_config import p2f_dict, langs_properties
     from Word2Phonemes.languages_setup import LanguageSetup
 
     # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
@@ -145,11 +144,8 @@ def phonology_example():
 
     language = 'kat'
     word = example_words[language]
-
     phon_use_attention = False
-    max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
-
-    converter = LanguageSetup(language, langs_properties[language][0], max_feat_size, phon_use_attention, langs_properties[language][1], langs_properties[language][2])
+    converter = LanguageSetup.create_phonology_converter(language, phon_use_attention)
 
     print(f"word = {word}")
     features_word = converter.word2phonemes(word, 'features')

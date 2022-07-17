@@ -5,11 +5,8 @@ from ast import literal_eval
 from typing import Tuple, Dict
 from editdistance import eval
 
-from defaults import EVALM_PATH
-from Word2Phonemes.g2p_config import p2f_dict, langs_properties
+from defaults import EVALM_PATH, LANGUAGES_LIST
 from Word2Phonemes.languages_setup import LanguageSetup
-
-from defaults import LANGUAGES_LIST
 
 def are_substrings_in_string(target_string: str, substrings: tuple) -> bool:
     return all([substring in target_string for substring in substrings])
@@ -60,15 +57,6 @@ def external_eval(output_path, gold_path, batches, predictions, sigm2017format, 
         for sample, prediction in zip((s for b in batches for s in b), predictions):
             w.write(line.format(IFET=sample.in_feat_str, IN=sample.lemma_str, FET=sample.out_feat_str, WORD=prediction, GOLD=sample.word_str))
 
-
-# TODO: move this to utils and optimize similar calls
-def create_phonology_converter(language: str) -> LanguageSetup:
-    # Calculating and instantiating the dynamic objects
-    max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
-    phonology_converter = LanguageSetup(language, langs_properties[language][0], max_feat_size, False, langs_properties[language][1], langs_properties[language][2])
-    return phonology_converter
-
-
 def evaluate_pred_vs_gold(features_prediction: Tuple[str], graphemes_gold: str, phonology_converter: LanguageSetup) -> Dict:
     graphemes_prediction = phonology_converter.phonemes2word(features_prediction, 'features')
     features_gold = tuple(phonology_converter.word2phonemes(graphemes_gold, 'features'))
@@ -89,7 +77,7 @@ def evaluate_features_predictions(outputs_file: str, phonology_converter: Langua
 
     if phonology_converter is None:
         language = get_language(outputs_file)
-        phonology_converter = create_phonology_converter(language)
+        phonology_converter = LanguageSetup.create_phonology_converter(language)
 
     measures_per_pair = [evaluate_pred_vs_gold(literal_eval(pair[0]), pair[1], phonology_converter) for pair in pairs]
 
