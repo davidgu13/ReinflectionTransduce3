@@ -1,6 +1,28 @@
 import codecs
+from os.path import join
+from os import listdir
+from ast import literal_eval
+from typing import Tuple, Dict
+from editdistance import eval
 
 from defaults import EVALM_PATH
+from Word2Phonemes.g2p_config import p2f_dict, langs_properties
+from Word2Phonemes.languages_setup import LanguageSetup
+
+from defaults import LANGUAGES_LIST
+
+def are_substrings_in_string(target_string: str, substrings: tuple) -> bool:
+    return all([substring in target_string for substring in substrings])
+
+def get_language(file_name: str) -> str:
+    """
+    Takes a file name (one of the train / dev / test files, and finds the run's language,
+    given the languages list.
+    """
+    query = [are_substrings_in_string(file_name, (lang, )) for lang in LANGUAGES_LIST] # returns a "True-hot" list
+    assert query.count(True) == 1
+    return LANGUAGES_LIST[query.index(True)]
+
 
 def write_stats_file(dev_accuracy, paths, data_arguments, model_arguments, optim_arguments):
 
@@ -37,3 +59,63 @@ def external_eval(output_path, gold_path, batches, predictions, sigm2017format, 
     with codecs.open(pred_path, 'w', encoding='utf8') as w:
         for sample, prediction in zip((s for b in batches for s in b), predictions):
             w.write(line.format(IFET=sample.in_feat_str, IN=sample.lemma_str, FET=sample.out_feat_str, WORD=prediction, GOLD=sample.word_str))
+
+
+# TODO: move this to utils and optimize similar calls
+def create_phonology_converter(language: str) -> LanguageSetup:
+    # Calculating and instantiating the dynamic objects
+    max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
+    phonology_converter = LanguageSetup(language, langs_properties[language][0], max_feat_size, False, langs_properties[language][1], langs_properties[language][2])
+    return phonology_converter
+
+
+def evaluate_pred_vs_gold(features_prediction: Tuple[str], graphemes_gold: str, phonology_converter: LanguageSetup) -> Dict:
+    graphemes_prediction = phonology_converter.phonemes2word(features_prediction, 'features')
+    features_gold = tuple(phonology_converter.word2phonemes(graphemes_gold, 'features'))
+
+    return {'graphemes_equality': graphemes_gold == graphemes_prediction,
+            'graphemes_ed': eval(graphemes_gold, graphemes_prediction),
+            'features_equality': features_gold == features_prediction,
+            'features_ed': eval(features_gold, features_prediction)}
+
+
+def evaluate_features_predictions(outputs_folder: str, phonology_converter: LanguageSetup = None):
+    """
+    Takes a file of the output format '{IFET}\t{IN}\t{FET}\t{WORD}\t{GOLD}', reads the last 2 in each line and calculates 4 measures.
+    Note: this method should only be called if reevaluation is required, i.e. the output format is features/phonemes.
+    """
+    rows = open(join(outputs_folder, 'f.greedy.test.predictions'), encoding='utf8').readlines()
+    pairs = [line.strip().split('\t')[-2:] for line in rows]
+
+    if phonology_converter is None:
+        language = get_language(outputs_folder)
+        phonology_converter = create_phonology_converter(language)
+
+    measures_per_pair = [evaluate_pred_vs_gold(literal_eval(pair[0]), pair[1], phonology_converter) for pair in pairs]
+
+    average_measure_by_key = lambda key: sum([sample_results_dict[key] for sample_results_dict in measures_per_pair]) / len(pairs)
+    graphemes_accuracy = average_measure_by_key('graphemes_equality')
+    features_accuracy = average_measure_by_key('features_equality')
+    graphemes_ed = average_measure_by_key('graphemes_ed')
+    features_ed = average_measure_by_key('features_ed')
+
+    return graphemes_accuracy, features_accuracy, graphemes_ed, features_ed
+
+
+def write_generalized_measures(stats_file, measures: Tuple[int, int, int, int]):
+    graphemes_accuracy, features_accuracy, graphemes_ed, features_ed = measures
+    with open(stats_file, 'a+') as f:
+        f.write(f"Evaluating based on the predictions file:\n")
+        f.write(f"Features-level: Accuracy: {features_accuracy}, Edit Distance: {features_ed}\n")
+        f.write(f"Graphemes-level: Accuracy: {graphemes_accuracy}, Edit Distance: {graphemes_ed}\n")
+
+
+if __name__ == '__main__':
+    results_folder = join('.', 'Results')
+    not_features_runs = ['Outputs3__kat_V_form_g_g_None_42', 'Outputs4__kat_V_form_g_g_None_42', 'Outputs__kat_V_form_g_g_None_42']
+    predictions_folders = [join(results_folder, f) for f in listdir(results_folder) if f not in not_features_runs]
+    folders_to_iterate = list(set(predictions_folders) - set(not_features_runs))
+
+    for pred_file in folders_to_iterate:
+        print(f"{pred_file}: ", end='')
+        print(evaluate_features_predictions(pred_file))
