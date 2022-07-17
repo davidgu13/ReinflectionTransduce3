@@ -29,7 +29,7 @@ def extract_accuracies_from_single_folder(folder, io_format):
         test_graphemes_accuracy, test_graphemes_ed = None, None
     elif io_format == 'f_f':
         # See write_generalized_measures in utils.py; dev_ and test_ accuracy mean here eval at features level
-        dev_accuracy, test_accuracy = find_float_in_line(lines[-7]), find_float_in_line(lines[-6])
+        dev_accuracy, test_accuracy = find_float_in_line(lines[-6]), find_float_in_line(lines[-5])
 
         test_features_accuracy, test_ed = find_2_floats_in_line(lines[-3])
         assert test_accuracy == test_features_accuracy
