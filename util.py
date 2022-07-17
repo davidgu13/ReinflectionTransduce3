@@ -79,16 +79,16 @@ def evaluate_pred_vs_gold(features_prediction: Tuple[str], graphemes_gold: str, 
             'features_ed': eval(features_gold, features_prediction)}
 
 
-def evaluate_features_predictions(outputs_folder: str, phonology_converter: LanguageSetup = None):
+def evaluate_features_predictions(outputs_file: str, phonology_converter: LanguageSetup = None):
     """
     Takes a file of the output format '{IFET}\t{IN}\t{FET}\t{WORD}\t{GOLD}', reads the last 2 in each line and calculates 4 measures.
     Note: this method should only be called if reevaluation is required, i.e. the output format is features/phonemes.
     """
-    rows = open(join(outputs_folder, 'f.greedy.test.predictions'), encoding='utf8').readlines()
+    rows = open(outputs_file, encoding='utf8').readlines()
     pairs = [line.strip().split('\t')[-2:] for line in rows]
 
     if phonology_converter is None:
-        language = get_language(outputs_folder)
+        language = get_language(outputs_file)
         phonology_converter = create_phonology_converter(language)
 
     measures_per_pair = [evaluate_pred_vs_gold(literal_eval(pair[0]), pair[1], phonology_converter) for pair in pairs]
