@@ -101,9 +101,9 @@ def write_generalized_measures(stats_file, measures: Tuple[int, int, int, int]):
 if __name__ == '__main__':
     results_folder = join('.', 'Results')
     not_features_runs = ['Outputs3__kat_V_form_g_g_None_42', 'Outputs4__kat_V_form_g_g_None_42', 'Outputs__kat_V_form_g_g_None_42']
-    predictions_folders = [join(results_folder, f) for f in listdir(results_folder) if f not in not_features_runs]
-    folders_to_iterate = list(set(predictions_folders) - set(not_features_runs))
+    predictions_files = [join(results_folder, f, 'f.greedy.test.predictions') for f in listdir(results_folder) if f not in not_features_runs]
+    files_to_iterate = list(set(predictions_files) - set(not_features_runs))
 
-    for pred_file in folders_to_iterate:
+    for pred_file in files_to_iterate:
         print(f"{pred_file}: ", end='')
         print(evaluate_features_predictions(pred_file))
