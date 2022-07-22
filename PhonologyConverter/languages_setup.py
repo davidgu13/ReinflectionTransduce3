@@ -133,9 +133,9 @@ class LanguageSetup:
                    langs_properties[language][2])
 
 # For debugging purposes:
-def two_way_conversion(w, lang_phonology):
-    print(f"PHON_USE_ATTENTION, lang = false, '{language}'")
-    print(f"w = {w}")
+def two_way_conversion(w, lang_phonology: LanguageSetup):
+    print(f"PHON_USE_ATTENTION = false, lang = '{language}'\nw = {w}")
+
     ps = lang_phonology.word2phonemes(w, mode='phonemes')
     feats = lang_phonology.word2phonemes(w, mode='features')
     print(f"phonemes = {ps}\nfeatures = {feats}")
@@ -143,7 +143,6 @@ def two_way_conversion(w, lang_phonology):
     p2word = lang_phonology.phonemes2word(ps, mode='phonemes')
     print(f"p2word: {p2word}\nED(w, p2word) = {edit_distance_eval(w, p2word)}")
 
-    feats = [f.split(',') for f in ','.join(feats).split(',$,')]
     f2word = lang_phonology.phonemes2word(feats, mode='features')
     print(f"f2word: {f2word}\nED(w, f2word) = {edit_distance_eval(w, f2word)}")
 
