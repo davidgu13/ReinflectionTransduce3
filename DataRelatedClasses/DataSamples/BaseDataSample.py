@@ -3,7 +3,7 @@ from typing import List
 from DataRelatedClasses.utils import feats2string, remove_pipe
 from defaults import BEGIN_WORD, END_WORD, SPECIAL_CHARS
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
-from Word2Phonemes.languages_setup import LanguageSetup
+from PhonologyConverter.languages_setup import LanguageSetup
 
 def assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str):
     # encode features as integers

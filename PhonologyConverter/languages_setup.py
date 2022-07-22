@@ -2,7 +2,7 @@ from itertools import chain
 from editdistance import eval
 from typing import List, Union, Tuple
 
-from Word2Phonemes.g2p_config import idx2feature, feature2idx, p2f_dict, f2p_dict, langs_properties, punctuations
+from PhonologyConverter.g2p_config import idx2feature, feature2idx, p2f_dict, f2p_dict, langs_properties, punctuations
 
 
 def joinit(iterable, delimiter):

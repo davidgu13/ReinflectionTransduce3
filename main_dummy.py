@@ -136,7 +136,7 @@ def kwargs_example():
 
 def phonology_example():
     # This example is taken from the baseline model implementation (PhonologyReinflection), as sanity checks.
-    from Word2Phonemes.languages_setup import LanguageSetup
+    from PhonologyConverter.languages_setup import LanguageSetup
 
     # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
     example_words = {'kat': 'არ მჭირდ-ებოდყეტ', 'swc': "magnchdhe-ong jwng'a", 'sqi': 'rdhëije rrçlldgj-ijdhegnjzh', 'lav': 'abscā t-raķkdzhēļšanģa',

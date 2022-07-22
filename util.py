@@ -6,7 +6,7 @@ from typing import Tuple, Dict
 from editdistance import eval
 
 from defaults import EVALM_PATH, LANGUAGES_LIST
-from Word2Phonemes.languages_setup import LanguageSetup
+from PhonologyConverter.languages_setup import LanguageSetup
 
 def are_substrings_in_string(target_string: str, substrings: tuple) -> bool:
     return all([substring in target_string for substring in substrings])

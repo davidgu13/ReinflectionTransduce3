@@ -5,7 +5,7 @@ from typing import List
 
 from DataRelatedClasses.DataSamples.BaseDataSample import BaseDataSample
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
-from Word2Phonemes.languages_setup import LanguageSetup
+from PhonologyConverter.languages_setup import LanguageSetup
 
 class BaseDataSet(object):
     # class to hold an encoded dataset
@@ -78,7 +78,7 @@ class BaseDataSet(object):
                     datasamples.append(sample)
             print(f'hallucinated data added. training expanded from {old_len} to {len(datasamples)} examples')
 
-        from Word2Phonemes.g2p_config import feature2idx
+        from PhonologyConverter.g2p_config import feature2idx
         kwargs['space_character'] = vocab.char.w2i.get(str(feature2idx[' ']))
         return cls(filename=filename, samples=datasamples, vocab=vocab,
                    training_data=training_data, tag_wraps=tag_wraps, verbose=verbose, **kwargs)
