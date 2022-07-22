@@ -3,7 +3,7 @@ from os.path import join
 from os import listdir
 from ast import literal_eval
 from typing import Tuple, Dict
-from editdistance import eval
+from editdistance import eval as edit_distance_eval
 
 from defaults import EVALM_PATH, LANGUAGES_LIST
 from PhonologyConverter.languages_setup import LanguageSetup
@@ -62,9 +62,9 @@ def evaluate_pred_vs_gold(features_prediction: Tuple[str], graphemes_gold: str, 
     features_gold = tuple(phonology_converter.word2phonemes(graphemes_gold, 'features'))
 
     return {'graphemes_equality': graphemes_gold == graphemes_prediction,
-            'graphemes_ed': eval(graphemes_gold, graphemes_prediction),
+            'graphemes_ed': edit_distance_eval(graphemes_gold, graphemes_prediction),
             'features_equality': features_gold == features_prediction,
-            'features_ed': eval(features_gold, features_prediction)}
+            'features_ed': edit_distance_eval(features_gold, features_prediction)}
 
 
 def evaluate_features_predictions(outputs_file: str, phonology_converter: LanguageSetup = None):

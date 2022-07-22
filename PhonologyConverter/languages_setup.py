@@ -1,9 +1,8 @@
 from itertools import chain
-from editdistance import eval
+from editdistance import eval as edit_distance_eval
 from typing import List, Union, Tuple
 
 from PhonologyConverter.g2p_config import idx2feature, feature2idx, p2f_dict, f2p_dict, langs_properties, punctuations
-
 
 def joinit(iterable, delimiter):
     # Inserts delimiters between elements of some iterable object.
@@ -142,11 +141,11 @@ def two_way_conversion(w, lang_phonology):
     print(f"phonemes = {ps}\nfeatures = {feats}")
 
     p2word = lang_phonology.phonemes2word(ps, mode='phonemes')
-    print(f"p2word: {p2word}\nED(w, p2word) = {eval(w, p2word)}")
+    print(f"p2word: {p2word}\nED(w, p2word) = {edit_distance_eval(w, p2word)}")
 
     feats = [f.split(',') for f in ','.join(feats).split(',$,')]
     f2word = lang_phonology.phonemes2word(feats, mode='features')
-    print(f"f2word: {f2word}\nED(w, f2word) = {eval(w, f2word)}")
+    print(f"f2word: {f2word}\nED(w, f2word) = {edit_distance_eval(w, f2word)}")
 
 if __name__ == '__main__':
     # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
