@@ -72,8 +72,12 @@ def evaluate_features_predictions(outputs_file: str, phonology_converter: Langua
     Takes a file of the output format '{IFET}\t{IN}\t{FET}\t{WORD}\t{GOLD}', reads the last 2 in each line and calculates 4 measures.
     Note: this method should only be called if reevaluation is required, i.e. the output format is features/phonemes.
     """
-    rows = open(outputs_file, encoding='utf8').readlines()
-    pairs = [line.strip().split('\t')[-2:] for line in rows]
+    try:
+        rows = open(outputs_file, encoding='utf8').readlines()
+        pairs = [line.strip().split('\t')[-2:] for line in rows]
+    except FileNotFoundError:
+        print(f"Warning: No such file: {outputs_file}")
+        return
 
     if phonology_converter is None:
         language = get_language(outputs_file)
