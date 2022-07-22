@@ -10,7 +10,8 @@ height = ['open', 'open-mid', 'mid', 'close-mid', 'close'] # 22-26
 backness = ['front', 'back', 'central'] # 27-29
 roundness = ['rounded', 'unrounded'] # 30-31
 length = ['long'] # only for vowels; no occurence means short vowel # 32
-punctuations = [' ', '-', "'", "̇", '.', '*', '?'] # 33-39, '*' is for predictions of non-existent feature bundles (see languages_setup.py)
+punctuations = [' ', '-', "'", "̇", '.', '*', '?'] # 33-39
+# '*' is for predictions of non-existent feature bundles (see languages_setup.py). Note: this line differs from the original g2p_config file!
 
 phon_features = place + manner + voice + height + backness + roundness + length + punctuations
 idx2feature = dict(enumerate(phon_features))
@@ -70,7 +71,7 @@ lav_p2g_dict = {**dict(zip(lav_phonemes, lav_alphabet)), **punctuations_g2p_dict
 def lav_phonemes2word(phonemes:[str]):
     return phonemes2graphemes_with_doubles(phonemes, lang='lav')
 def lav_clean_sample(x:str) -> str:
-    return x.replace('í', 'ī').replace('ŗ', 'r').replace("LgSPEC8", "LGSPEC8") # replace the 3 occurences of 'í' with 'ī', and the 28 occ. of 'ŗ'
+    return x.replace('y','i').replace('í', 'ī').replace('ŗ', 'r').replace("LgSPEC8", "LGSPEC8") # replace the 3 occurences of 'í' with 'ī', and the 28 occ. of 'ŗ'
 lav_components = [lav_g2p_dict, None, lav_phonemes2word, lav_clean_sample]
 # endregion Latvian - lav
 
@@ -177,7 +178,7 @@ def tur_phonemes2word(phonemes:[str]):
         i += 1
     return graphemes
 def tur_clean_sample(x:str) -> str:
-    return x.replace('İ', 'i')
+    return x.replace('İ', 'i').replace('i̇', 'i')
 tur_components = [tur_g2p_dict, tur_word2phonemes, tur_phonemes2word, tur_clean_sample]
 # endregion Turkish - tur
 
