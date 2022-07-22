@@ -1,6 +1,9 @@
 from itertools import chain
+from editdistance import eval
 from typing import List, Union, Tuple
+
 from Word2Phonemes.g2p_config import idx2feature, feature2idx, p2f_dict, f2p_dict, langs_properties, punctuations
+
 
 def joinit(iterable, delimiter):
     # Inserts delimiters between elements of some iterable object.
@@ -9,24 +12,6 @@ def joinit(iterable, delimiter):
     for x in it:
         yield delimiter
         yield x
-
-# Foe debugging purposes:
-import numpy as np
-def editDistance(str1, str2):
-    """Simple Levenshtein implementation"""
-    table = np.zeros([len(str2) + 1, len(str1) + 1])
-    for i in range(1, len(str2) + 1):
-        table[i][0] = table[i - 1][0] + 1
-    for j in range(1, len(str1) + 1):
-        table[0][j] = table[0][j - 1] + 1
-    for i in range(1, len(str2) + 1):
-        for j in range(1, len(str1) + 1):
-            if str1[j - 1] == str2[i - 1]:
-                dg = 0
-            else:
-                dg = 1
-            table[i][j] = min(table[i - 1][j] + 1, table[i][j - 1] + 1, table[i - 1][j - 1] + dg)
-    return int(table[len(str2)][len(str1)])
 
 def tuple_of_phon_tuples2phon_sequence(tupleOfTuples) -> [str]:
     return list(chain(*joinit(tupleOfTuples, ('$',))))
@@ -157,11 +142,11 @@ def two_way_conversion(w, lang_phonology):
     print(f"phonemes = {ps}\nfeatures = {feats}")
 
     p2word = lang_phonology.phonemes2word(ps, mode='phonemes')
-    print(f"p2word: {p2word}\nED(w, p2word) = {editDistance(w, p2word)}")
+    print(f"p2word: {p2word}\nED(w, p2word) = {eval(w, p2word)}")
 
     feats = [f.split(',') for f in ','.join(feats).split(',$,')]
     f2word = lang_phonology.phonemes2word(feats, mode='features')
-    print(f"f2word: {f2word}\nED(w, f2word) = {editDistance(w, f2word)}")
+    print(f"f2word: {f2word}\nED(w, f2word) = {eval(w, f2word)}")
 
 if __name__ == '__main__':
     # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
