@@ -110,11 +110,11 @@ class LanguageSetup:
         if mode == 'features':
             if sequence == () or sequence == []: return '' # edge case: empty prediction
             if sequence[-1] == '$': sequence = sequence[:-1] # ignore '$' at the prediction's end.
-            phon_feats = ','.join(sequence).split(',$,')
+            comma_separated_phonemes_list = ','.join(sequence).split(',$,')
             if self.manual_phonemes2word and self.phon_use_attention:
-                new_sequence = self._phonemes2word([e.split(',')[-1] for e in phon_feats], mode='phonemes')
+                new_sequence = self._phonemes2word([e.split(',')[-1] for e in comma_separated_phonemes_list], mode='phonemes')
             else:
-                new_sequence = self._phonemes2word([p.split(',') for p in phon_feats], mode='features')
+                new_sequence = self._phonemes2word([p.split(',') for p in comma_separated_phonemes_list], mode='features')
         else: # mode=='phonemes'
             new_sequence = self._phonemes2word(sequence, mode='phonemes')
 
