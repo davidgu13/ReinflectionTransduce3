@@ -58,7 +58,7 @@ def external_eval(output_path, gold_path, batches, predictions, sigm2017format, 
             w.write(line.format(IFET=sample.in_feat_str, IN=sample.lemma_str, FET=sample.out_feat_str, WORD=prediction, GOLD=sample.word_str))
 
 def evaluate_pred_vs_gold(features_prediction: Tuple[str], graphemes_gold: str, phonology_converter: LanguageSetup) -> Dict:
-    graphemes_prediction = phonology_converter.phonemes2word(features_prediction, 'features')
+    graphemes_prediction = phonology_converter.phonemes2word(features_prediction, 'features', normalize=True)
     features_gold = tuple(phonology_converter.word2phonemes(graphemes_gold, 'features'))
 
     return {'graphemes_equality': graphemes_gold == graphemes_prediction,

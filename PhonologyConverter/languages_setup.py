@@ -42,7 +42,7 @@ class LanguageSetup:
     Note: the class is implemented to fit to Georgian, Russian and several Indo-European languages. For languages with more complex phonology,
     this class might need to be extended/be inherited from.
     """
-    def __init__(self, lang_name: str, graphemes2phonemes:dict, max_phoneme_size: int,
+    def __init__(self, lang_name: str, graphemes2phonemes: dict, max_phoneme_size: int,
                  phon_use_attention: bool, manual_word2phonemes=None, manual_phonemes2word=None):
         self._name = lang_name
         self._graphemes2phonemes = graphemes2phonemes
@@ -62,7 +62,7 @@ class LanguageSetup:
     def get_lang_alphabet(self): return self._alphabet
     def get_lang_phonemes(self): return self._phonemes
 
-    def word2phonemes(self, word:str, mode:str) -> Union[List[List[int]], List[str]]:
+    def word2phonemes(self, word: str, mode: str) -> Union[List[List[int]], List[str]]:
         """
         Convert a word (sequence of graphemes) to a list of phoneme tuples.
         :param word: word
@@ -92,10 +92,10 @@ class LanguageSetup:
             features = tuple_of_phon_tuples2phon_sequence(features)
             return features
 
-    def _phonemes2word(self, phonemes: [[str]], mode:str) -> str:
+    def _phonemes2word(self, phonemes: Union[List[str], Tuple[str], List[List[str]]], mode: str) -> str:
         """
         Convert a list of phoneme tuples to a word (sequence of graphemes)
-        :param phonemes: [(,,), (,,), (,,), ...] or (*IPA symbols*)
+        :param phonemes: [(,,), (,,), (,,), ...] or a list of IPA symbols
         :param mode: can be either 'features' or 'phonemes' (see more above).
         :return: word
         """
@@ -119,16 +119,17 @@ class LanguageSetup:
             graphemes = self._phonemes2word(phoneme_tokens, 'phonemes')
         return ''.join(graphemes)
 
-    def phonemes2word(self, sequence: Union[List[str], Tuple[str]], mode:str, normalize = False) -> str:
+    def phonemes2word(self, sequence: Union[List[str], Tuple[str]], mode: str, normalize = False) -> str:
         """
         Wrapper for _phonemes2word.
         sequence is list, of either features (['1', '2', '3', '$', '4', '5', 'NA', '$', ...]),
         phonemes (['p', 't', 'o:', ...]), or combined (['1', '2', '3', 'p', '$', '4', '5', 'NA', 'o:', '$', ...])
         """
         assert mode in {'features', 'phonemes'}, f"Mode {mode} is invalid"
+        if type(sequence) == tuple: sequence = list(sequence)
 
         if mode == 'features':
-            if sequence == () or sequence == []: return '' # edge case: empty prediction
+            if not sequence: return '' # edge case: empty prediction
 
             if normalize:
                 sequence = normalize_dollars(sequence)
