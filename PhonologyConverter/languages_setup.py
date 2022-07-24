@@ -1,10 +1,10 @@
 from itertools import chain
-from editdistance import eval as edit_distance_eval
-from typing import List, Union, Tuple
+import re
+from typing import List, Union, Tuple, Iterable
 
 from PhonologyConverter.g2p_config import idx2feature, feature2idx, p2f_dict, f2p_dict, langs_properties, punctuations
 
-def joinit(iterable, delimiter):
+def joinit(iterable: Iterable, delimiter):
     # Inserts delimiters between elements of some iterable object.
     it = iter(iterable)
     yield next(it)
@@ -12,8 +12,28 @@ def joinit(iterable, delimiter):
         yield delimiter
         yield x
 
-def tuple_of_phon_tuples2phon_sequence(tupleOfTuples) -> [str]:
-    return list(chain(*joinit(tupleOfTuples, ('$',))))
+def tuple_of_phon_tuples2phon_sequence(tupleOfTuples: Iterable[Tuple[str]]) -> List[str]:
+    return list(chain(*joinit(tupleOfTuples, ('$',) )))
+
+def normalize_dollars(sequence: List[str], verbose = False) -> List[str]:
+    """
+    Takes a sequence of phonological features, separated by '$'s, and normalizes the sequence to the closest valid sequence.
+    The normalizing includes removal of any unnecessary '$'s.
+    :param sequence: e.g. ['1', '2', '3', '$', '4', '5', 'NA', '$', ...], possibly invalid.
+    :param verbose: prints a corresponding message
+    :return: The sequence without the unnecessary '$' signs.
+    """
+    while sequence[0] == '$' and sequence != []: del sequence[0]
+    while sequence[-1] == '$' and sequence != []: del sequence[-1]
+
+    comma_replaced_sequence = re.sub(r'\$,[$,]+', '$,', ','.join(sequence))
+    result_sequence = comma_replaced_sequence.split(',')
+
+    if verbose:
+        if result_sequence == sequence: print(f"Sequence was valid, no corrections were made")
+        else: print("Sequence wasn't valid, some corrections were made")
+
+    return result_sequence
 
 
 class LanguageSetup:
@@ -99,7 +119,7 @@ class LanguageSetup:
             graphemes = self._phonemes2word(phoneme_tokens, 'phonemes')
         return ''.join(graphemes)
 
-    def phonemes2word(self, sequence: Union[List[str], Tuple[str]], mode:str) -> str:
+    def phonemes2word(self, sequence: Union[List[str], Tuple[str]], mode:str, normalize = False) -> str:
         """
         Wrapper for _phonemes2word.
         sequence is list, of either features (['1', '2', '3', '$', '4', '5', 'NA', '$', ...]),
@@ -109,7 +129,10 @@ class LanguageSetup:
 
         if mode == 'features':
             if sequence == () or sequence == []: return '' # edge case: empty prediction
-            if sequence[-1] == '$': sequence = sequence[:-1] # ignore '$' at the prediction's end.
+
+            if normalize:
+                sequence = normalize_dollars(sequence)
+
             comma_separated_phonemes_list = ','.join(sequence).split(',$,')
             if self.manual_phonemes2word and self.phon_use_attention:
                 new_sequence = self._phonemes2word([e.split(',')[-1] for e in comma_separated_phonemes_list], mode='phonemes')
@@ -121,7 +144,7 @@ class LanguageSetup:
         return new_sequence
 
     @classmethod
-    def create_phonology_converter(cls, language: str, phon_use_attention: bool = False):
+    def create_phonology_converter(cls, language: str, phon_use_attention = False):
         # Calculating and instantiating the dynamic objects
         max_feat_size = max([len(p2f_dict[p]) for p in langs_properties[language][0].values() if p in p2f_dict])  # composite phonemes aren't counted in that list
 
