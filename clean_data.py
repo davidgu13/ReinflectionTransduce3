@@ -7,6 +7,8 @@ import os
 from itertools import product
 from os.path import isdir, isfile, join
 from shutil import copy2
+from PhonologyConverter.g2p_config import sqi_clean_sample, lav_clean_sample, \
+    hun_clean_sample, tur_clean_sample, fin_clean_sample
 
 datasets_path = join(os.getcwd(), ".data", "Reinflection")
 cleaned_datasets_path = join(datasets_path, "CleanedData")
@@ -20,29 +22,6 @@ file_types = ['train', 'dev', 'test']
 kat_clean_sample = None # lambda x: x
 swc_clean_sample = None # lambda x: x
 bul_clean_sample = None # lambda x: x
-
-def sqi_clean_sample(x:str) -> str:
-    return x.replace("',","") # appears in the data only as part of "për t'u ..." (NFIN)
-
-def lav_clean_sample(x:str) -> str:
-    return x.replace('í', 'ī').replace('ŗ', 'r').replace("LgSPEC8", "LGSPEC8") # replace the 3 occurences of 'í' with 'ī', and the 28 occ. of 'ŗ'
-
-def hun_clean_sample(x:str) -> str:
-    # the " |or| " is a bug of the scraping from Wiktionary. It can appear at the end of a form
-    # (search in the data for "jósolj|or|") or between 2 forms (search for "jóslok |or| jósolok").
-    # There are also pipes ("|"), alone or preceded by a space " |".
-    chars_to_remove = [" |or| ", "|or|", " |", "|"]
-    for p in chars_to_remove: x = x.replace(p, "")
-    return x
-
-def tur_clean_sample(x:str) -> str:
-    return x.replace('İ', 'i')
-
-def fin_clean_sample(x:str) -> str:
-    chars_to_remove = ['\xa0', ":", "/"]
-    for p in chars_to_remove: x = x.replace(p, "")
-    x = x.replace("á", "a").replace("â", "a").replace("û", "u").replace("ü", "u")
-    return x
 
 existing_combinations = os.listdir(datasets_path)
 cleaners = {'kat': kat_clean_sample, 'swc': swc_clean_sample, 'sqi': sqi_clean_sample, 'lav': lav_clean_sample,

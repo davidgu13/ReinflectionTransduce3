@@ -101,7 +101,7 @@ def write_generalized_measures(stats_file, measures: Tuple[int, int, int, int]):
         f.write(f"Features-level: Accuracy: {features_accuracy}, Edit Distance: {features_ed}\n")
         f.write(f"Graphemes-level: Accuracy: {graphemes_accuracy}, Edit Distance: {graphemes_ed}\n")
 
-
+# TODO: sync with local
 if __name__ == '__main__':
     results_folder = join('.', 'Results')
     not_features_runs = ['Outputs3__kat_V_form_g_g_None_42', 'Outputs4__kat_V_form_g_g_None_42', 'Outputs__kat_V_form_g_g_None_42']

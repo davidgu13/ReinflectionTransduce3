@@ -203,7 +203,7 @@ def fin_phonemes2word(phonemes:[str]):
     result = list(''.join(result).replace('x','ks'))
     return result
 def fin_clean_sample(x:str) -> str:
-    chars_to_remove = ['\xa0', ":", "/"]
+    chars_to_remove = ['\xa0', ":", "/", ","]
     for p in chars_to_remove: x = x.replace(p, "")
     x = x.replace("á", "a").replace("â", "a").replace("û", "u").replace("ü", "u")
     return x
