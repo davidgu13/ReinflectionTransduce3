@@ -102,8 +102,10 @@ def write_generalized_measures(stats_file, measures: Tuple[int, int, int, int]):
         f.write(f"Graphemes-level: Accuracy: {graphemes_accuracy}, Edit Distance: {graphemes_ed}\n")
 
 if __name__ == '__main__':
-    local_mode = False
-    if local_mode:
+    single_file, local_mode = False, False
+    if single_file:
+        print(evaluate_features_predictions(join("Results", "??", 'f.greedy.test.predictions')))
+    elif local_mode:
         results_folder = join('.', 'Results')
         not_features_runs = ['Outputs3__kat_V_form_g_g_None_42', 'Outputs4__kat_V_form_g_g_None_42', 'Outputs__kat_V_form_g_g_None_42']
         predictions_files = [join(results_folder, f, 'f.greedy.test.predictions') for f in listdir(results_folder) if f not in not_features_runs]
