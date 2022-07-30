@@ -101,13 +101,21 @@ def write_generalized_measures(stats_file, measures: Tuple[int, int, int, int]):
         f.write(f"Features-level: Accuracy: {features_accuracy}, Edit Distance: {features_ed}\n")
         f.write(f"Graphemes-level: Accuracy: {graphemes_accuracy}, Edit Distance: {graphemes_ed}\n")
 
-# TODO: sync with local
 if __name__ == '__main__':
-    results_folder = join('.', 'Results')
-    not_features_runs = ['Outputs3__kat_V_form_g_g_None_42', 'Outputs4__kat_V_form_g_g_None_42', 'Outputs__kat_V_form_g_g_None_42']
-    predictions_files = [join(results_folder, f, 'f.greedy.test.predictions') for f in listdir(results_folder) if f not in not_features_runs]
-    files_to_iterate = list(set(predictions_files) - set(not_features_runs))
+    local_mode = False
+    if local_mode:
+        results_folder = join('.', 'Results')
+        not_features_runs = ['Outputs3__kat_V_form_g_g_None_42', 'Outputs4__kat_V_form_g_g_None_42', 'Outputs__kat_V_form_g_g_None_42']
+        predictions_files = [join(results_folder, f, 'f.greedy.test.predictions') for f in listdir(results_folder) if f not in not_features_runs]
+        files_to_iterate = list(set(predictions_files) - set(not_features_runs))
 
-    for pred_file in files_to_iterate:
-        print(f"{pred_file}: ", end='')
-        print(evaluate_features_predictions(pred_file))
+        for pred_file in files_to_iterate:
+            print(f"{pred_file}: ", end='')
+            print(evaluate_features_predictions(pred_file))
+    else:
+        results_folder = join('.', 'Results', 'demos_42_f_f', 'Second_Demos_Session')
+        predictions_files = [join(results_folder, f, 'f.greedy.test.predictions') for f in listdir(results_folder)]
+
+        for pred_file in predictions_files:
+            print(f"{pred_file}: ", end='')
+            print(evaluate_features_predictions(pred_file))
