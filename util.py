@@ -57,6 +57,14 @@ def external_eval(output_path, gold_path, batches, predictions, sigm2017format, 
         for sample, prediction in zip((s for b in batches for s in b), predictions):
             w.write(line.format(IFET=sample.in_feat_str, IN=sample.lemma_str, FET=sample.out_feat_str, WORD=prediction, GOLD=sample.word_str))
 
+
+def write_generalized_measures(stats_file, measures: Tuple[int, int, int, int]):
+    graphemes_accuracy, features_accuracy, graphemes_ed, features_ed = measures
+    with open(stats_file, 'a+') as f:
+        f.write(f"Evaluating based on the predictions file:\n")
+        f.write(f"Features-level: Accuracy: {features_accuracy}, Edit Distance: {features_ed}\n")
+        f.write(f"Graphemes-level: Accuracy: {graphemes_accuracy}, Edit Distance: {graphemes_ed}\n")
+
 def evaluate_pred_vs_gold(features_prediction: Tuple[str], graphemes_gold: str, phonology_converter: LanguageSetup) -> Dict:
     graphemes_prediction = phonology_converter.phonemes2word(features_prediction, 'features', normalize=True)
     features_gold = tuple(phonology_converter.word2phonemes(graphemes_gold, 'features'))
@@ -92,14 +100,6 @@ def evaluate_features_predictions(outputs_file: str, phonology_converter: Langua
     features_ed = average_measure_by_key('features_ed')
 
     return graphemes_accuracy, features_accuracy, graphemes_ed, features_ed
-
-
-def write_generalized_measures(stats_file, measures: Tuple[int, int, int, int]):
-    graphemes_accuracy, features_accuracy, graphemes_ed, features_ed = measures
-    with open(stats_file, 'a+') as f:
-        f.write(f"Evaluating based on the predictions file:\n")
-        f.write(f"Features-level: Accuracy: {features_accuracy}, Edit Distance: {features_ed}\n")
-        f.write(f"Graphemes-level: Accuracy: {graphemes_accuracy}, Edit Distance: {graphemes_ed}\n")
 
 if __name__ == '__main__':
     single_file, local_mode = False, False
