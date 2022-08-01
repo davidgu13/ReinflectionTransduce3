@@ -52,7 +52,7 @@ def process_paths(arguments):
     except Exception:
         lang, regime = 'unk', 'unk'
 
-    results_file_path = check_path(arguments['RESULTS-PATH'], 'RESULTS_PATH', is_data_path=False)
+    results_file_path = check_path(arguments['RESULTS-PATH'].replace('\r', ''), 'RESULTS_PATH', is_data_path=False)
     # some filenames defined from `results_file_path`
     log_file_path   = os.path.join(results_file_path, 'f.log')
     tmp_model_path  = os.path.join(results_file_path, 'f.model')

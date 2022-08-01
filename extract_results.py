@@ -18,7 +18,7 @@ def find_2_floats_in_line(line):
 def extract_accuracies_from_single_folder(folder, io_format):
     # The folder has the format: Outputs_YYYY-MM-DD hhmmss_lang_pos_training-mode_IO_analogy_seed.
     # If the output format is not graphemes ('g'), then reevaluation was made at graphemes level.
-    assert io_format in {'g_g, f_f'}
+    assert io_format in {'g_g', 'f_f'}
     datetime, lang, pos, training_mode = basename(folder).split("_")[1:5]
 
     lines = open(join(folder, 'f.stats'), encoding='utf8').read().split('\n')
@@ -42,7 +42,7 @@ def extract_accuracies_from_single_folder(folder, io_format):
 def main():
     results_folder = join('.', 'Results')
     io_format = 'f_f' # 'g_g'
-    analogy_types, seeds  = ['None'], ['100', '42', '21']
+    analogy_types, seeds  = ['None'], ['42'] # ['100', '42', '21']
 
     lang_pos_groups = dict(zip(range(1,16), ['kat_V', 'kat_N', 'fin_ADJ', 'swc_V', 'swc_ADJ', 'fin_V', 'sqi_V', 'hun_V',
                                              'bul_V', 'bul_ADJ', 'lav_V', 'lav_N', 'tur_V', 'tur_ADJ', 'fin_N']))
