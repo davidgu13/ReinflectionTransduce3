@@ -653,28 +653,23 @@ class TrainingSession(object):
                     self.model.save(tmp_model_path)
                     print('saved new best model to {}'.format(tmp_model_path))
 
-                print(('epoch: {} train loss: {:.4f} dev loss: {:.4f} dev acc: {:.4f} '
-                   'train acc: {:.4f} best train acc: {:.4f} best dev acc: {:.4f} (epoch {}) '
-                   'best dev loss: {:.7f} (epoch {}) patience = {}').format(
-                   epoch, self.avg_loss, avg_dev_loss, dev_accuracy, train_accuracy,
-                   self.best_train_accuracy, self.best_dev_accuracy, self.best_dev_acc_epoch,
-                   self.best_avg_dev_loss, self.best_dev_loss_epoch, patience))
+                print(f'epoch: {epoch}, train acc: {train_accuracy:.4f}, best train acc: {self.best_train_accuracy:.4f}, train loss: {self.avg_loss:.4f}, '
+                      f'dev acc: {dev_accuracy:.4f}, best dev acc: {self.best_dev_accuracy:.4f} (epoch {self.best_dev_acc_epoch}), dev loss: {avg_dev_loss:.4f}, '
+                      f'best dev loss: {self.best_avg_dev_loss:.7f} (epoch {self.best_dev_loss_epoch}), patience = {patience}')
 
             else:
+                dev_accuracy = -1
                 patience = 0
                 self.model.save(tmp_model_path)
                 print('saved last model to {}'.format(tmp_model_path))
-            print(('epoch: {} train loss: {:.4f} '
-               'train acc: {:.4f} best train acc: {:.4f} best dev acc: {:.4f} (epoch {}) '
-               'best dev loss: {:.7f} (epoch {}) patience = {}').format(
-               epoch, self.avg_loss, train_accuracy,
-               self.best_train_accuracy, self.best_dev_accuracy, self.best_dev_acc_epoch,
-               self.best_avg_dev_loss, self.best_dev_loss_epoch, patience))
 
+                print(f'epoch: {epoch}, train acc: {train_accuracy:.4f}, best train acc: {self.best_train_accuracy:.4f}, train loss: {self.avg_loss:.4f}, '
+                      f'best dev acc: {self.best_dev_accuracy:.4f} (epoch {self.best_dev_acc_epoch}), '
+                      f'best dev loss: {self.best_avg_dev_loss:.7f} (epoch {self.best_dev_loss_epoch}), patience = {patience}')
 
             # LOG LATEST RESULTS
             with open(log_file_path, 'a') as a:
-                a.write("{}\t{}\t{}\n".format(epoch, self.avg_loss, train_accuracy))
+                a.write(f"{epoch}\t{self.avg_loss:.6f}\t{train_accuracy}\t{dev_accuracy}\n")
             
             if patience == max_patience:
                 print('out of patience after {} epochs'.format(epoch + 1))

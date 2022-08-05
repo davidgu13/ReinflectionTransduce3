@@ -9,7 +9,7 @@ def get_difference(folder_name, verbose = False):
     return get_folder_difference(file_name, verbose=verbose)
 
 def get_folder_difference(folder_name, verbose = False):
-    creation_datetime = datetime.strptime(folder_name[8:25], '%Y-%m-%d %H%M%S')
+    creation_datetime = datetime.strptime(basename(folder_name)[8:25], '%Y-%m-%d %H%M%S')
     if verbose: print(creation_datetime)
     modification_datetime = datetime.fromtimestamp(getmtime(folder_name))
     if verbose: print(modification_datetime)
@@ -18,16 +18,16 @@ def get_folder_difference(folder_name, verbose = False):
     if verbose: print(delta)
     return delta_str, delta.seconds
 
-def extract_durations():
-    excel_file = 'Durations.xlsx'
+def extract_durations(results_folder=None):
+    excel_file = 'Durations_42_f_f.xlsx'
     if excel_file in os.listdir(): remove(excel_file)
 
     accuracies = []
-    dirs = os.listdir()
+    dirs = os.listdir(results_folder)
     dirs.sort()
-    for folder in dirs:
-        lang, pos, split = basename(folder).split("_")[2:5]
-        delta, total_seconds = get_folder_difference(folder)
+    for sub_folder in dirs:
+        lang, pos, split = basename(sub_folder).split("_")[2:5]
+        delta, total_seconds = get_folder_difference(join(results_folder, sub_folder))
         accuracies.append([lang, pos, split, delta, total_seconds])
 
     df = DataFrame(accuracies, columns=['Language', 'POS', 'Split', 'Duration', 'In Seconds'])
@@ -50,3 +50,5 @@ if __name__ == '__main__':
         for line in lines_to_write:
             with open(join("runs_scripts", "f_f_runs", f"group{Index}-42.sh"), "a+") as file:
                 file.write(line+'\n')
+
+    # extract_durations(join("Results", "None_42_f_f"))
