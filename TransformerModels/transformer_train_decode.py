@@ -1,6 +1,9 @@
+# Efficient methods for operations, such as Decode
+from operator import itemgetter
+
 import dynet as dy
 import numpy as np
-from operator import itemgetter
+
 
 def transformer_with_decoder_calculate_loss(transformer, source, target, options, fDev=False):
     # encode
@@ -9,11 +12,11 @@ def transformer_with_decoder_calculate_loss(transformer, source, target, options
 
     losses = []
     tlen = max(map(len, target))
-    
+
     # go through each batch
-    for iW in range(tlen):# for each word
+    for iW in range(tlen):  # for each word
         gold_preds = [kTGT_EOS if iW >= len(sent) else sent[iW] for sent in source]
-        
+
         # pick out the correct dimension
         scores = dy.pick(out_enc, t, 1)
         # log softmax and loss
@@ -25,30 +28,32 @@ def transformer_with_decoder_calculate_loss(transformer, source, target, options
             losses.append((1.0 - options.label_smoothing_weight) * pre_loss + options.label_smoothing_weight * ls_loss)
         else:
             # just do the neglogsoftmax
-            losses.append(dy.pickneglogsoftmax(scores, gold-pred))                
-            
-    # return double sum
+            losses.append(dy.pickneglogsoftmax(scores, gold - pred))
+
+            # return double sum
     return dy.sum_batches(dy.sum(losses))
-        
+
+
 def transformer_greedy_decode(transformer, source):
     dy.renew_cg()
     memory, mem_mask, _ = transformer.run_encoder([source])
     pred_target = [kTGT_SOS]
-    
+
     while len(pred_target) < 100 and pred_target[-1] != kTGT_EOS:
-        #dy.cg_checkpoint()
+        # dy.cg_checkpoint()
         # calculate the distribution
         cur_ydist = transformer.calc_step(memory, mem_mask, pred_target, False)
         # find the best word
         w = np.argmax(cur_ydist.npvalue())
-        pred_target.append(w)    
-        #dy.cg_revert()
+        pred_target.append(w)
+        # dy.cg_revert()
     return pred_target
-    
+
+
 def transformer_beam_decode(transformer, source, beam_size=5):
     dy.renew_cg()
     memory, mem_mask, _ = transformer.run_encoder([source])
-    
+
     cur_beams = [([kTGT_SOS], 0)]
     while True:
         new_beams = []
@@ -57,7 +62,7 @@ def transformer_beam_decode(transformer, source, beam_size=5):
             if beam[0][-1] == kTGT_EOS or len(beam[0]) >= 100:
                 new_beams.append(beam)
                 continue
-            #dy.cg_checkpoint()
+            # dy.cg_checkpoint()
             # calculate the distribution (log-softmax)
             cur_ydist = transformer.calc_step(memory, mem_mask, beam[0], True)
             # find the best words
@@ -66,8 +71,8 @@ def transformer_beam_decode(transformer, source, beam_size=5):
             # add them in
             new_beams.extend([(beam[0] + [w], beam[1] + npval[w]) for w in top_ws])
             found_new_beams = True
-            
-            #dy.cg_revert()
+
+            # dy.cg_revert()
         if not found_new_beams:
             break
         # take the top X
