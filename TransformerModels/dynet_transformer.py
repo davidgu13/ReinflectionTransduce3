@@ -172,7 +172,7 @@ class Embeddings:
         src_mask.create_seq_mask_expr(seq_masks, False)  # *not* self attn
         if enc_mask is not None:
             src_mask.create_padding_positions_masks_with_src(enc_mask.get_seq_mask(),
-                                                             self.nheads);  # note: if we were using the not-parallel attention, we would put here 1
+                                                             self.nheads)  # note: if we were using the not-parallel attention, we would put here 1
 
         # return all 3
         return embeds, self_mask, src_mask
@@ -199,9 +199,9 @@ class Encoder:
             self.pooler = lambda x: dy.tanh(self._pooler(x))
 
     def __call__(self, sentences, dropout=0.0):
-        '''
+        """
             sentence is a list of list of ints
-        '''
+        """
         enc_output, mask, _ = self.embed(sentences, dropout=dropout)
         # run through each of the layers
         for enc in self.enc_layers:
@@ -212,7 +212,7 @@ class Encoder:
         if self.add_pooler_output:
             pooled_output = self.pooler(dy.pick(enc_output, 0, 1))
         # apply a final norm
-        return (enc_output, mask, pooled_output)
+        return enc_output, mask, pooled_output
 
 
 class Decoder:
@@ -229,9 +229,9 @@ class Decoder:
         self.final_norm = NormalizationLayer(model, options.num_units, name="decoder")
 
     def __call__(self, sentences, memory, enc_mask, dropout=0.0):
-        '''
+        """
             sentence is a list of list of ints
-        '''
+        """
         embeds, self_mask, src_mask = self.embed(sentences, enc_mask=enc_mask, dropout=dropout)
         dec_output = embeds
         # run through each of the layers
@@ -296,7 +296,7 @@ class Transformer:
 
     def calc_step(self, memory, mem_mask, partial_tgt, flog_prob):
         if not self.has_decoder:
-            raise "Cannot calculate step with no decoder defined"
+            raise Exception("Cannot calculate step with no decoder defined")
         # build the graph with the decoder
         tgt_enc = self.decoder([partial_tgt], memory, mem_mask)
         # pick the last column

@@ -124,8 +124,8 @@ class MaskBase(object):
     def get_fb_mask(self):
         return self._i_mask_fb
 
-    def create_future_blinding_mask(self, len):
-        self._i_mask_fb = create_triangle_mask(len, False)
+    def create_future_blinding_mask(self, length):
+        self._i_mask_fb = create_triangle_mask(length, False)
 
     def create_seq_mask_expr(self, v_seq_masks, self_attn=True):
         l = len(v_seq_masks[0])
