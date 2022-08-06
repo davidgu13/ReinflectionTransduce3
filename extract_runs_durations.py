@@ -35,7 +35,9 @@ def extract_durations(results_folder=None):
     df.to_excel(excel_file)
 
 if __name__ == '__main__':
-    df = read_excel("Durations.xlsx", 1)
+    df = read_excel("Durations.xlsx", "reruns_list")
+    runs_scripts_folder = join("runs_scripts", "f_f_runs", "42", "reruns")
+
     curr_index = -1
     for j in range(df.shape[0]):
         lines_to_write = []
@@ -48,7 +50,7 @@ if __name__ == '__main__':
         lines_to_write.append(f"bash dummy.sh {row.Language} {row.POS} {row.Split} 42")
 
         for line in lines_to_write:
-            with open(join("runs_scripts", "f_f_runs", f"group{Index}-42.sh"), "a+") as file:
+            with open(join(runs_scripts_folder, f"group{Index}-42.sh"), "a+") as file:
                 file.write(line+'\n')
 
     # extract_durations(join("Results", "None_42_f_f"))
