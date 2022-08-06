@@ -102,6 +102,7 @@ for model_fname, config in pairs:
                 if use_cuda:
                     seq = seq.to("cuda")
                 ret = pt_model(seq)
+            #     is return missing ?
 
 
             # seq_dy = np.array([tokenized_sequence[:slice_size]] * batch_size)
