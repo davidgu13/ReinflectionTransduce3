@@ -81,16 +81,17 @@ Options:
   --hall-path=HALL-PATH         path with hallucinated data
 """
 
-
 import random
+
 import dynet as dy
 import numpy as np
 from docopt import docopt
-# import sys, codecs
 
 from args_processor import process_arguments
 from trainer import TrainingSession, dev_external_eval, test_external_eval
 from util import evaluate_features_predictions, write_generalized_measures
+
+# import sys, codecs
 
 # sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
 # sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
@@ -136,9 +137,9 @@ if __name__ == "__main__":
         model = dy.Model()
         transducer = model_arguments['transducer'](model, VOCAB, **model_arguments)
 
-        training_session = TrainingSession(model, transducer, VOCAB,
-            train_data, dev_data, optim_arguments['batch-size'],  # train batchsize
-            optim_arguments['optimizer'], batch_size, dev_batches)
+        training_session = TrainingSession(model, transducer, VOCAB, train_data, dev_data,
+                                           optim_arguments['batch-size'],  # train batchsize
+                                           optim_arguments['optimizer'], batch_size, dev_batches)
 
         if paths['reload_path']:
             training_session.reload(paths['reload_path'], paths['tmp_model_path'])
@@ -151,16 +152,16 @@ if __name__ == "__main__":
                 print('Pretraining the model in a supervised manner for {} epochs.'.format(pretrain_epochs))
             else:
                 print(('Pretraining the model in a supervised manner until'
-                    ' train accuracy {}.'.format(train_until_accuracy)))
+                       ' train accuracy {}.'.format(train_until_accuracy)))
             training_session.run_MLE_training(epochs=pretrain_epochs,
-                train_until_accuracy=train_until_accuracy,
-                max_patience=optim_arguments['patience'],
-                pick_best_accuracy=optim_arguments['pick-acc'],
-                dropout=optim_arguments['pretrain-dropout'],
-                l2=optim_arguments['l2'],
-                log_file_path=paths['log_file_path'],
-                tmp_model_path=paths['tmp_model_path'],
-                check_condition=data_arguments['verbose'])
+                                              train_until_accuracy=train_until_accuracy,
+                                              max_patience=optim_arguments['patience'],
+                                              pick_best_accuracy=optim_arguments['pick-acc'],
+                                              dropout=optim_arguments['pretrain-dropout'],
+                                              l2=optim_arguments['l2'],
+                                              log_file_path=paths['log_file_path'],
+                                              tmp_model_path=paths['tmp_model_path'],
+                                              check_condition=data_arguments['verbose'])
             print('Finished pretraining. Train loss: {}'.format(training_session.avg_loss))
             print('Reloading the best supervised model...')
             training_session.reload(paths['tmp_model_path'])
@@ -169,15 +170,14 @@ if __name__ == "__main__":
         # endregion handle pretraining
 
         if optim_arguments['mode'] == 'mle':
-            training_session.run_MLE_training(
-                epochs=optim_arguments['epochs'],
-                max_patience=optim_arguments['patience'],
-                pick_best_accuracy=optim_arguments['pick-acc'],
-                dropout=optim_arguments['dropout'],
-                l2=optim_arguments['l2'],
-                log_file_path=paths['log_file_path'],
-                tmp_model_path=paths['tmp_model_path'],
-                check_condition=data_arguments['verbose'])
+            training_session.run_MLE_training(epochs=optim_arguments['epochs'],
+                                              max_patience=optim_arguments['patience'],
+                                              pick_best_accuracy=optim_arguments['pick-acc'],
+                                              dropout=optim_arguments['dropout'],
+                                              l2=optim_arguments['l2'],
+                                              log_file_path=paths['log_file_path'],
+                                              tmp_model_path=paths['tmp_model_path'],
+                                              check_condition=data_arguments['verbose'])
 
         elif optim_arguments['mode'] == 'rl':
             training_session.run_RL_training(
@@ -223,9 +223,9 @@ if __name__ == "__main__":
 
     if test_data:
         print('=========TEST EVALUATION:=========')
-        test_batches = [test_data.samples[i:i+batch_size] for i in range(0, len(test_data), batch_size)]
+        test_batches = [test_data.samples[i: i + batch_size] for i in range(0, len(test_data), batch_size)]
         test_accuracy = test_external_eval(test_batches, transducer, VOCAB, paths,
-                           optim_arguments['beam-widths'], data_arguments['sigm2017format'])
+                                           optim_arguments['beam-widths'], data_arguments['sigm2017format'])
     else:
         test_accuracy = -1
 
@@ -235,5 +235,6 @@ if __name__ == "__main__":
         test_predictions_file = paths['test_output']('greedy') + 'predictions'
         measures = evaluate_features_predictions(test_predictions_file, phonology_converter)
 
-        assert measures[1] == test_accuracy # the return of test_external_eval equals to the (features-level) predictions' evaluation
+        assert measures[
+                   1] == test_accuracy  # the return of test_external_eval equals to the (features-level) predictions' evaluation
         write_generalized_measures(paths['stats_file_path'], measures)

@@ -1,18 +1,17 @@
-
-
 import dynet as dy
 import numpy as np
 
 from defaults import COPY, DELETE, END_WORD, MAX_ACTION_SEQ_LEN, UNK
 from stack_lstms import Encoder
 
-NONLINS = {'tanh' : dy.tanh, 'ReLU' : dy.rectify}
+NONLINS = {'tanh': dy.tanh, 'ReLU': dy.rectify}
+
 
 class Transducer(object):
     def __init__(self, model, vocab, char_dim=100, action_dim=100, feat_dim=20,
                  enc_hidden_dim=200, enc_layers=1, dec_hidden_dim=200, dec_layers=1,
                  vanilla_lstm=False, mlp_dim=0, nonlin='ReLU', lucky_w=55,
-                 double_feats=False, param_tying=False, pos_emb=True, 
+                 double_feats=False, param_tying=False, pos_emb=True,
                  avm_feat_format=False, **kwargs):
         
         self.CHAR_DIM       = char_dim
@@ -40,24 +39,24 @@ class Transducer(object):
         self.NUM_ACTS  = self.vocab.act_train
 
         # an enumeration of all encoded insertions
-        self.INSERTS   = list(range(self.vocab.number_specials, self.NUM_ACTS))
-        
+        self.INSERTS = list(range(self.vocab.number_specials, self.NUM_ACTS))
+
         # report stats
         print('{} actions: {}'.format(self.NUM_ACTS,
-            ', '.join(list(self.vocab.act.keys()))))
+                                      ', '.join(list(self.vocab.act.keys()))))
         print('{} features: {}'.format(self.NUM_FEATS,
-            ', '.join(list(self.vocab.feat.keys()))))
+                                       ', '.join(list(self.vocab.feat.keys()))))
         print('{} lemma chars: {}'.format(self.NUM_CHARS,
-            ', '.join(list(self.vocab.char.keys()))))
+                                          ', '.join(list(self.vocab.char.keys()))))
 
         if self.avm_feat_format:
             self.NUM_FEAT_TYPES = self.vocab.feat_type_train
             print('{} feature types: {}'.format(self.NUM_FEAT_TYPES,
-                ', '.join(list(self.vocab.feat_type.keys()))))
+                                                ', '.join(list(self.vocab.feat_type.keys()))))
             if self.pos_emb:
                 print('Assuming AVM features, therefore no specialized pos embedding')
                 self.pos_emb = False
-        
+
         self._build_model(model)
         # for printing
         self.hyperparams = {'CHAR_DIM'       : self.CHAR_DIM,
@@ -83,7 +82,7 @@ class Transducer(object):
             self.ACT_LOOKUP = self.CHAR_LOOKUP
             print('NB! Using parameter tying: Chars and actions share embedding matrix.')
         else:
-            self.ACT_LOOKUP  = model.add_lookup_parameters((self.NUM_ACTS, self.ACTION_DIM))
+            self.ACT_LOOKUP = model.add_lookup_parameters((self.NUM_ACTS, self.ACTION_DIM))
         # embed features or bag-of-word them?
         if not self.FEAT_DIM:
             print('Using an n-hot representation for features.')
@@ -95,30 +94,30 @@ class Transducer(object):
                 self.POS_LOOKUP = model.add_lookup_parameters((self.NUM_POS, self.FEAT_DIM))
                 # POS feature is the only feature with many values (=`self.NUM_POS`), hence + 1.
                 # All other features are binary (e.g. SG and PL are disjoint binary features).
-                self.FEAT_INPUT_DIM = self.NUM_FEATS*self.FEAT_DIM  # + 1 for POS and - 1 for UNK
+                self.FEAT_INPUT_DIM = self.NUM_FEATS * self.FEAT_DIM  # + 1 for POS and - 1 for UNK
                 print('All feature-value pairs are taken to be atomic, except for POS.')
             else:
                 self.POS_LOOKUP = self.FEAT_LOOKUP  # self.POS_LOOKUP is probably not needed
                 if self.avm_feat_format:
-                    self.FEAT_INPUT_DIM = self.NUM_FEAT_TYPES*self.FEAT_DIM
+                    self.FEAT_INPUT_DIM = self.NUM_FEAT_TYPES * self.FEAT_DIM
                     print('All feature-value pairs are taken to be non-atomic.')
                 else:
-                    self.FEAT_INPUT_DIM = (self.NUM_FEATS - 1)*self.FEAT_DIM  # -1 for UNK
+                    self.FEAT_INPUT_DIM = (self.NUM_FEATS - 1) * self.FEAT_DIM  # -1 for UNK
                     print('Every feature-value pair is taken to be atomic.')
 
         # BiLSTM encoding lemma
-        self.fbuffRNN  = self.LSTM(self.ENC_LAYERS, self.CHAR_DIM, self.ENC_HIDDEN_DIM, model)
-        self.bbuffRNN  = self.LSTM(self.ENC_LAYERS, self.CHAR_DIM, self.ENC_HIDDEN_DIM, model)
+        self.fbuffRNN = self.LSTM(self.ENC_LAYERS, self.CHAR_DIM, self.ENC_HIDDEN_DIM, model)
+        self.bbuffRNN = self.LSTM(self.ENC_LAYERS, self.CHAR_DIM, self.ENC_HIDDEN_DIM, model)
 
         # LSTM representing generated word
-        self.WORD_REPR_DIM = self.ENC_HIDDEN_DIM*2 + self.ACTION_DIM + self.FEAT_INPUT_DIM*2
-        self.wordRNN  = self.LSTM(self.DEC_LAYERS, self.WORD_REPR_DIM, self.DEC_HIDDEN_DIM, model)
-        
+        self.WORD_REPR_DIM = self.ENC_HIDDEN_DIM * 2 + self.ACTION_DIM + self.FEAT_INPUT_DIM * 2
+        self.wordRNN = self.LSTM(self.DEC_LAYERS, self.WORD_REPR_DIM, self.DEC_HIDDEN_DIM, model)
+
         self.CLASSIFIER_IMPUT_DIM = self.DEC_HIDDEN_DIM
         if self.double_feats:
-            self.CLASSIFIER_IMPUT_DIM += self.FEAT_INPUT_DIM*2
+            self.CLASSIFIER_IMPUT_DIM += self.FEAT_INPUT_DIM * 2
 
-        print(' * LEMMA biLSTM:      IN-DIM: {}, OUT-DIM: {}'.format(2*self.CHAR_DIM, 2*self.ENC_HIDDEN_DIM))
+        print(' * LEMMA biLSTM:      IN-DIM: {}, OUT-DIM: {}'.format(2 * self.CHAR_DIM, 2 * self.ENC_HIDDEN_DIM))
         print(' * WORD LSTM:         IN-DIM: {}, OUT-DIM: {}'.format(self.WORD_REPR_DIM, self.DEC_HIDDEN_DIM))
         print(' LEMMA LSTMs have {} layer(s)'.format(self.ENC_LAYERS))
         print(' WORD LSTM has {} layer(s)'.format(self.DEC_LAYERS))
@@ -143,13 +142,13 @@ class Transducer(object):
         self.pW_act = model.add_parameters((self.NUM_ACTS, feature_dim))
         self.pb_act = model.add_parameters(self.NUM_ACTS)
         print(' * SOFTMAX:           IN-DIM: {}, OUT-DIM: {}'.format(feature_dim, self.NUM_ACTS))
-        
+
     def _build_model(self, model):
         # feature model
         self._features(model)
         # classifier
         self._classifier(model)
-        
+
     def _build_lemma(self, lemma, unk_avg, is_training):
         # returns a list of character embedding for the lemma
         if is_training:
@@ -188,7 +187,7 @@ class Transducer(object):
                         feat = UNK
                     feat_vecs.append(self.FEAT_LOOKUP[feat])
             #
-            else:                
+            else:
                 for feat in range(1, self.NUM_FEATS):  # skip UNK
                     if feat in feats:  # set of indices
                         feat_vecs.append(self.FEAT_LOOKUP[feat])
@@ -206,13 +205,13 @@ class Transducer(object):
             feats_enc = dy.inputVector(nhot * self.LUCKY_W)
 
         return feats_enc
-    
+
     def set_dropout(self, dropout):
         self.wordRNN.set_dropout(dropout)
 
     def disable_dropout(self):
         self.wordRNN.disable_dropout()
-    
+
     def l2_norm(self, with_embeddings=True):
         # specify regularization term: sum of Frobenius/L2-normalized weights
         # assume that we add to a computation graph
@@ -246,7 +245,7 @@ class Transducer(object):
                 valid_actions += [END_WORD]
             valid_actions += self.INSERTS
             return valid_actions
-        
+
         show_oracle_actions = False
 
         if not external_cg:
@@ -292,28 +291,29 @@ class Transducer(object):
             print()
             print(''.join([self.vocab.act.i2w[a] for a in oracle_actions]))
             print(''.join([self.vocab.char.i2w[a] for a in lemma]))
-        
+
         while len(action_history) <= MAX_ACTION_SEQ_LEN:
-            
+
             if show_oracle_actions:
                 print('Action: ', count, self.vocab.act.i2w[action_history[-1]])
                 print('Encoder length, char: ', lemma, len(encoder), self.vocab.char.i2w[encoder.s[-1][-1]])
                 print('word: ', ''.join(word))
                 print('Remaining actions: ', oracle_actions, ''.join([self.vocab.act.i2w[a] for a in oracle_actions]))
                 count += 1
-            #elif action_history[-1] >= self.NUM_ACTS:
+            # elif action_history[-1] >= self.NUM_ACTS:
             #    print 'Will be adding unseen act embedding: ', self.vocab.act.i2w[action_history[-1]]
-            
+
             # compute probability of each of the actions and choose an action
             # either from the oracle or if there is no oracle, based on the model
             valid_actions = _valid_actions(encoder)
+
             # decoder
             decoder_input = dy.concatenate([encoder.embedding(),
                                             in_features,
                                             out_features,
-                                            self.ACT_LOOKUP[action_history[-1]]
-                                           ])
+                                            self.ACT_LOOKUP[action_history[-1]]])
             decoder = decoder.add_input(decoder_input)
+
             # classifier
             if self.double_feats:
                 classifier_input = dy.concatenate([decoder.output(), in_features, out_features])
@@ -326,16 +326,17 @@ class Transducer(object):
             logits = W_act * h + b_act
             log_probs = dy.log_softmax(logits, valid_actions)
             # print "MADE IT UNTIL HERE, oracle_actions = {}\n".format(oracle_actions)
+
             # get action (argmax, sampling, or use oracle actions)
             if oracle_actions is None:
                 if sampling:
-                    dist = np.exp(log_probs.npvalue()) #**0.9
+                    dist = np.exp(log_probs.npvalue())  # **0.9
                     dist = dist / np.sum(dist)
                     # sample according to softmax
                     rand = np.random.rand()
                     for action, p in enumerate(dist):
                         rand -= p
-                        if rand <= 0: break  
+                        if rand <= 0: break
                 else:
                     action = np.argmax(log_probs.npvalue())
             else:
@@ -343,15 +344,15 @@ class Transducer(object):
 
             losses.append(dy.pick(log_probs, action))
             action_history.append(action)
-            #print 'action, log_probs: ', action, self.vocab.act.i2w[action], losses[-1].scalar_value(), log_probs.npvalue()
-            
+            # print 'action, log_probs: ', action, self.vocab.act.i2w[action], losses[-1].scalar_value(), log_probs.npvalue()
+
             # execute the action to update the transducer state
             if action == COPY:
                 # 1. Increment attention index
                 char_ = encoder.pop()
                 # 2. Append copied character to the output word
                 word.append(self.vocab.char.i2w[char_])
-            elif action == DELETE:               
+            elif action == DELETE:
                 # 1. Increment attention index
                 encoder.pop()
             elif action == END_WORD:
