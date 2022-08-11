@@ -1,10 +1,9 @@
 import os
-import re
 
 SRC_PATH = os.path.dirname(__file__)
-RESULTS_PATH = os.path.join(SRC_PATH, './Results')
-DATA_PATH = os.path.join(SRC_PATH, '.data/Reinflection/CleanedData')
-EVALM_PATH = os.path.join(SRC_PATH, '../eval_scripts/evalm.py')
+RESULTS_PATH = os.path.join(SRC_PATH, 'Results')
+DATA_PATH = os.path.join(SRC_PATH, '..', '.data', 'Reinflection', 'CleanedData')
+EVALM_PATH = os.path.join(SRC_PATH, '..', 'eval_scripts', 'evalm.py')
 
 ALIGN_SYMBOL = '~'
 
@@ -32,8 +31,10 @@ SPECIAL_CHARS = (ALIGN_SYMBOL, BEGIN_WORD_CHAR, END_WORD_CHAR, UNK_CHAR,
                  STEP_CHAR, DELETE_CHAR, COPY_CHAR)
 
 ### trainer defaults
-MAX_ACTION_SEQ_LEN = 150
+MAX_ACTION_SEQ_LEN = 200
 SANITY_SIZE = 100
 
 ### for docopt argument processing
 NULL_ARGS = 'None', 'none', 'no', '0'
+
+LANGUAGES_LIST = ['kat', 'swc', 'sqi', 'lav', 'bul', 'hun', 'tur', 'fin']

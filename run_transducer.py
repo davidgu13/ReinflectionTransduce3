@@ -82,20 +82,19 @@ Options:
 """
 
 
-from docopt import docopt
-
+import random
 import dynet as dy
 import numpy as np
-import random
-import sys, codecs
+from docopt import docopt
+# import sys, codecs
+
 from args_processor import process_arguments
-from datasets import BaseDataSet, PCFPDataSet
-from trainer import TrainingSession, internal_eval, dev_external_eval, test_external_eval
+from trainer import TrainingSession, dev_external_eval, test_external_eval
+from util import evaluate_features_predictions, write_generalized_measures
 
-sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
-sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
-sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
-
+# sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
+# sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
+# sys.stdin = codecs.getreader('utf-8')(sys.__stdin__)
 
 if __name__ == "__main__":
 
@@ -110,9 +109,11 @@ if __name__ == "__main__":
 
     print('Loading data... Dataset: {}'.format(data_arguments['dataset']))
     train_data = data_arguments['dataset'].from_file(paths['train_path'], **data_arguments)
+    phonology_converter = train_data.phonology_converter
     VOCAB = train_data.vocab
     VOCAB.train_cutoff()  # knows that entities before come from train set
     batch_size = optim_arguments['decbatch-size']
+    model_arguments['use_phonology'] = phonology_converter is not None
 
     if paths['dev_path']:
         dev_data = data_arguments['dataset'].from_file(paths['dev_path'], vocab=VOCAB, **data_arguments)
@@ -123,7 +124,7 @@ if __name__ == "__main__":
 
     if paths['test_path']:
         # no alignments, hence BaseDataSet
-        test_data = BaseDataSet.from_file(paths['test_path'], vocab=VOCAB, **data_arguments)
+        test_data = data_arguments['dataset'].from_file(paths['test_path'], vocab=VOCAB, **data_arguments)
         # test_data = PCFPDataSet.from_file(paths['test_path'], vocab=VOCAB, **data_arguments)
     else:
         test_data = None
@@ -131,7 +132,6 @@ if __name__ == "__main__":
     model = None
 
     if not optim_arguments['eval']:
-
         print('Building model for training... Transducer: {}'.format(model_arguments['transducer']))
         model = dy.Model()
         transducer = model_arguments['transducer'](model, VOCAB, **model_arguments)
@@ -143,6 +143,7 @@ if __name__ == "__main__":
         if paths['reload_path']:
             training_session.reload(paths['reload_path'], paths['tmp_model_path'])
 
+        # region handle pretraining
         if optim_arguments['pretrain-epochs'] or optim_arguments['pretrain-until']:
             pretrain_epochs = optim_arguments['pretrain-epochs']
             train_until_accuracy = optim_arguments['pretrain-until']
@@ -165,6 +166,7 @@ if __name__ == "__main__":
             training_session.reload(paths['tmp_model_path'])
         else:
             print('No supervised pretraining.')
+        # endregion handle pretraining
 
         if optim_arguments['mode'] == 'mle':
             training_session.run_MLE_training(
@@ -222,5 +224,16 @@ if __name__ == "__main__":
     if test_data:
         print('=========TEST EVALUATION:=========')
         test_batches = [test_data.samples[i:i+batch_size] for i in range(0, len(test_data), batch_size)]
-        test_external_eval(test_batches, transducer, VOCAB, paths,
+        test_accuracy = test_external_eval(test_batches, transducer, VOCAB, paths,
                            optim_arguments['beam-widths'], data_arguments['sigm2017format'])
+    else:
+        test_accuracy = -1
+
+    if model_arguments['use_phonology'] and test_accuracy != -1:
+        # Reevaluate at graphemes level: Read the test predictions file and evaluate the features predictions.
+        # Then, write in f.stats all the 4 measures.
+        test_predictions_file = paths['test_output']('greedy') + 'predictions'
+        measures = evaluate_features_predictions(test_predictions_file, phonology_converter)
+
+        assert measures[1] == test_accuracy # the return of test_external_eval equals to the (features-level) predictions' evaluation
+        write_generalized_measures(paths['stats_file_path'], measures)

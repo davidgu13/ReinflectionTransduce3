@@ -3,10 +3,8 @@
 import dynet as dy
 import numpy as np
 
-from defaults import (STEP, COPY, DELETE, BEGIN_WORD, END_WORD, UNK,
-                      END_WORD_CHAR, MAX_ACTION_SEQ_LEN)
+from defaults import COPY, DELETE, END_WORD, MAX_ACTION_SEQ_LEN, UNK
 from stack_lstms import Encoder
-from datasets import action2string
 
 NONLINS = {'tanh' : dy.tanh, 'ReLU' : dy.rectify}
 
@@ -40,22 +38,8 @@ class Transducer(object):
         self.NUM_FEATS = self.vocab.feat_train
         self.NUM_POS   = self.vocab.pos_train
         self.NUM_ACTS  = self.vocab.act_train
-        # an enumeration of all encoded insertions
-        # print "\n\nself.vocab = " + str(self.vocab) # ########### My addition ###########
-        # print "type(self.vocab) = " + str(type(self.vocab)) + " \n" # ########### My addition ###########
-        #        
-        # print "self.vocab.char = " + str(self.vocab.char) # ########### My addition ###########
-        # print "self.vocab.char_train = " + str(self.vocab.char_train) + " \n" # ########### My addition ###########
-        # print "self.vocab.feat = " + str(self.vocab.feat) # ########### My addition ###########
-        # print "self.vocab.feat_train = " + str(self.vocab.feat_train) + " \n" # ########### My addition ###########
-        # print "self.vocab.pos = " + str(self.vocab.pos) # ########### My addition ###########
-        # print "self.vocab.pos_train = " + str(self.vocab.pos_train) + " \n" # ########### My addition ###########
-        # print "self.vocab.act = " + str(self.vocab.act) # ########### My addition ###########
-        # print "self.vocab.act_train = " + str(self.vocab.act_train) + " \n" # ########### My addition ###########
-        #        
-        # print "self.vocab.w2i_acts = " + str(self.vocab.w2i_acts) # ########### My addition ###########
-        # print "self.vocab.number_specials = " + str(self.vocab.number_specials) + " \n\n" # ########### My addition ###########
 
+        # an enumeration of all encoded insertions
         self.INSERTS   = list(range(self.vocab.number_specials, self.NUM_ACTS))
         
         # report stats
@@ -89,6 +73,8 @@ class Transducer(object):
                             'PARAM_TYING'    : self.param_tying,
                             'POS_EMB'        : self.pos_emb,
                             'AVM_FEATS'      : self.avm_feat_format}
+
+        self.kwargs = kwargs
 
     def _features(self, model):
         # trainable embeddings for characters and actions
@@ -303,7 +289,6 @@ class Transducer(object):
         count = 0
 
         if show_oracle_actions:
-            # print "\n\n#1 Something is printed here:"
             print()
             print(''.join([self.vocab.act.i2w[a] for a in oracle_actions]))
             print(''.join([self.vocab.char.i2w[a] for a in lemma]))
@@ -311,8 +296,6 @@ class Transducer(object):
         while len(action_history) <= MAX_ACTION_SEQ_LEN:
             
             if show_oracle_actions:
-                # print "\n#2 Something is printed here:"
-
                 print('Action: ', count, self.vocab.act.i2w[action_history[-1]])
                 print('Encoder length, char: ', lemma, len(encoder), self.vocab.char.i2w[encoder.s[-1][-1]])
                 print('word: ', ''.join(word))
@@ -341,7 +324,6 @@ class Transducer(object):
             else:
                 h = classifier_input
             logits = W_act * h + b_act
-            # print "\n\nThe valid actions are: " + str(valid_actions) + " \n\n" # ########### My addition ###########
             log_probs = dy.log_softmax(logits, valid_actions)
             # print "MADE IT UNTIL HERE, oracle_actions = {}\n".format(oracle_actions)
             # get action (argmax, sampling, or use oracle actions)
@@ -359,11 +341,8 @@ class Transducer(object):
             else:
                 action = oracle_actions.pop()
 
-            # print 'al hapanim 2'
             losses.append(dy.pick(log_probs, action))
             action_history.append(action)
-            # print 'al hapanim 3'
-
             #print 'action, log_probs: ', action, self.vocab.act.i2w[action], losses[-1].scalar_value(), log_probs.npvalue()
             
             # execute the action to update the transducer state
@@ -385,9 +364,11 @@ class Transducer(object):
                 # 1. Append inserted character to the output word
                 char_ = self.vocab.act.i2w[action]
                 word.append(char_)
-            # print 'al hapanim 4'
-        # print 'al hapanim 5'        
-        word = ''.join(word)
+
+        if self.kwargs['use_phonology']:
+            word = tuple(word)
+        else:
+            word = ''.join(word)
         return losses, word, action_history
 
     def beam_search_decode(self, lemma, in_feats, out_feats, external_cg=True, unk_avg=True, beam_width=4):

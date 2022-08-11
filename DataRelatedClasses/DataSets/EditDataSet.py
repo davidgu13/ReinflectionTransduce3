@@ -2,7 +2,7 @@ from DataRelatedClasses.DataSets.AlignedDataSet import AlignedDataSet
 from DataRelatedClasses.Vocabs.EditVocab import EditVocab
 from DataRelatedClasses.utils import action2string
 from aligners import dumb_align
-from defaults import DELETE, COPY, ALIGN_SYMBOL, DELETE_CHAR,COPY_CHAR
+from defaults import DELETE, COPY, ALIGN_SYMBOL, DELETE_CHAR, COPY_CHAR
 
 class EditDataSet(AlignedDataSet):
     # this dataset uses COPY action
@@ -41,51 +41,32 @@ class EditDataSet(AlignedDataSet):
                 print('WARNING: Many DELETE actions!\n')
 
     def _build_oracle_actions(self, lemma, word, sample, **kwargs):
+        # The only use of sample is for sample.set_actions in the end
         # Makarov et al 2017 Algorithm 1
-        def _build(lemma, word):
-            actions = []
-            alignment_len = len(lemma)
-            has_copy = False
-            for i, (l, w) in enumerate(zip(lemma, word)):
-                if l == ALIGN_SYMBOL:
+        actions = []
+        alignment_len = len(lemma)
+        for i, (l, w) in enumerate(zip(lemma, word)):
+            if l == ALIGN_SYMBOL:
+                actions.append(self.vocab.act[w])
+            elif w == ALIGN_SYMBOL:
+                actions.append(self.vocab.act[DELETE_CHAR])
+            elif l == w:
+                if i + 1 == alignment_len:
+                    # end of string => insert </s>
                     actions.append(self.vocab.act[w])
-                elif w == ALIGN_SYMBOL:
-                    actions.append(self.vocab.act[DELETE_CHAR])
-                elif l == w:
-                    if i + 1 == alignment_len:
-                        # end of string => insert </s>
-                        actions.append(self.vocab.act[w])
-                    elif self.copy_as_substitution:
-                        # treat copy as another substitution action
-                        actions.append(self.vocab.act[w + '@'])
-                    else:
-                        # treat copy as a special action
-                        actions.append(self.vocab.act[COPY_CHAR])
-                        has_copy = True
+                elif self.copy_as_substitution:
+                    # treat copy as another substitution action
+                    actions.append(self.vocab.act[w + '@'])
                 else:
-                    # substitution
-                    if self.substitution:
-                        subt = self.vocab.act[w + '@'],
-                        # subt = (self.vocab.act[u'@' + l + w + u'@'],)
-                    else:
-                        subt = self.vocab.act[DELETE_CHAR], self.vocab.act[w]
-                    actions.extend(subt)
-            return actions, has_copy
-
-        actions, has_copy = _build(lemma, word)
-
-        if self.try_reverse and has_copy:
-            # no copying is being done, probably this sample uses prefixation.
-            # Try aligning original pair from the end:
-            reversed_pair = sample.lemma[::-1], sample.word[::-1]
-            [(new_al_lemma, new_al_word)] = self.aligner([reversed_pair], ALIGN_SYMBOL)
-            ractions, has_copy = _build(new_al_lemma[::-1], new_al_word[::-1])
-
-            if has_copy:
-                print(
-                    f'Reversed aligned: {al_lemma} => {al_word}\n'
-                    f'Forward alignment: {action2string(actions, self.vocab)}, REVERSED alignment: {action2string(ractions, self.vocab)}')
-                actions = ractions
+                    # treat copy as a special action
+                    actions.append(self.vocab.act[COPY_CHAR])
+            else:
+                # substitution
+                if self.substitution:
+                    subt = self.vocab.act[w + '@'],
+                else:
+                    subt = self.vocab.act[DELETE_CHAR], self.vocab.act[w]
+                actions.extend(subt)
 
         if self.reorder_deletes:
             reordered_actions = []
@@ -111,9 +92,9 @@ class EditDataSet(AlignedDataSet):
             actions = reordered_actions + suffix
 
         if self.verbose == 2:
-            print(f'{word}\n{action2string(actions, self.vocab)}\n{lemma}\n')
+            print(f"{word}\n{action2string(actions, self.vocab)}\n{lemma}\n") # action2string = '==========|დით>'
 
-        sample.set_actions(actions, lemma, word)
+        sample.set_actions(actions, lemma, word) # actions = [4, ..., 4, 3, 5, 12, 11, 2]
 
     @classmethod
     def from_file(cls, filename, vocab=None, **kwargs):

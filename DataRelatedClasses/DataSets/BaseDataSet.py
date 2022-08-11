@@ -1,11 +1,11 @@
 import os
 import codecs
 from random import shuffle
-
 from typing import List
 
 from DataRelatedClasses.DataSamples.BaseDataSample import BaseDataSample
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
+from PhonologyConverter.languages_setup import LanguageSetup
 
 class BaseDataSet(object):
     # class to hold an encoded dataset
@@ -17,15 +17,25 @@ class BaseDataSet(object):
         self.training_data = training_data
         self.tag_wraps = tag_wraps
         self.verbose = verbose
+        self.phonology_converter = kwargs.get('phonology_converter') # None if kwargs['use_phonology] is None, otherwise of type LanguageSetup
 
     def __len__(self):
         return self.length
 
     @classmethod
-    def from_file(cls, filename, vocab, DataSample=BaseDataSample,
+    def from_file(cls, filename, vocab: VocabBox, DataSample=BaseDataSample,
                   encoding='utf8', delimiter='\t', tag_wraps='both', verbose=True, **kwargs):
         # filename (str):   tab-separated file containing morphology reinflection data:
         #                   lemma word feat1;feat2;feat3...
+
+        kwargs['use_phonology'] = kwargs.get('language') is not None
+        if kwargs['use_phonology']:
+            language = kwargs['language']
+            phon_use_attention = False
+            phonology_converter = LanguageSetup.create_phonology_converter(language, phon_use_attention)
+        else:
+            phonology_converter = None
+        kwargs['phonology_converter'] = phonology_converter
 
         if isinstance(filename, list):
             filename, hallname = filename
@@ -49,7 +59,8 @@ class BaseDataSet(object):
         with codecs.open(filename, encoding=encoding) as f:
             for row in f:
                 split_row = row.strip().split(delimiter)
-                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row)
+                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row,
+                         sigm2017format=kwargs['sigm2017format'], phonology_converter=phonology_converter)
                 datasamples.append(sample)
 
         if hallname:
@@ -67,5 +78,7 @@ class BaseDataSet(object):
                     datasamples.append(sample)
             print(f'hallucinated data added. training expanded from {old_len} to {len(datasamples)} examples')
 
+        from PhonologyConverter.g2p_config import feature2idx
+        kwargs['space_character'] = vocab.char.w2i.get(str(feature2idx[' ']))
         return cls(filename=filename, samples=datasamples, vocab=vocab,
                    training_data=training_data, tag_wraps=tag_wraps, verbose=verbose, **kwargs)

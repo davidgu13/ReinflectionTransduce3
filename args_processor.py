@@ -1,16 +1,17 @@
 import os
 
-import dynet as dy
-
-from defaults import DATA_PATH, RESULTS_PATH, NULL_ARGS
-from aligners import smart_align, dumb_align, cls_align
 import datasets
-import transducer
 import hacm
+import hacm_sub
 import haem
 import haem_sub
-import hacm_sub
 import hard
+import transducer
+from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
+from aligners import cls_align, dumb_align, smart_align
+from defaults import DATA_PATH, LANGUAGES_LIST, NULL_ARGS, RESULTS_PATH
+from typing import Callable
+
 
 def process_paths(arguments):
     
@@ -51,14 +52,14 @@ def process_paths(arguments):
     except Exception:
         lang, regime = 'unk', 'unk'
 
-    results_file_path = check_path(arguments['RESULTS-PATH'], 'RESULTS_PATH', is_data_path=False)
+    results_file_path = check_path(arguments['RESULTS-PATH'].replace('\r', ''), 'RESULTS_PATH', is_data_path=False)
     # some filenames defined from `results_file_path`
     log_file_path   = os.path.join(results_file_path, 'f.log')
     tmp_model_path  = os.path.join(results_file_path, 'f.model')
     stats_file_path = os.path.join(results_file_path, 'f.stats')
     # dec: this is decoding -- greedy or beam
-    dev_output  = lambda dec: os.path.join(results_file_path, 'f.{}.dev.'.format(dec))
-    test_output = lambda dec: os.path.join(results_file_path, 'f.{}.test.'.format(dec))
+    dev_output: Callable[[str], str]  = lambda dec: os.path.join(results_file_path, 'f.{}.dev.'.format(dec))
+    test_output: Callable[[str], str] = lambda dec: os.path.join(results_file_path, 'f.{}.test.'.format(dec))
 
     if arguments['--reload-path'] == 'self':
         # flag to reload from result directory
@@ -90,7 +91,11 @@ def process_paths(arguments):
 
 
 def process_data_arguments(arguments):
-    
+    train_file = arguments['TRAIN-PATH']
+    assert len([lang for lang in LANGUAGES_LIST if lang in train_file]) == 1
+    language = [lang for lang in LANGUAGES_LIST if lang in train_file][0]
+
+    # Find which of the list
     if arguments['--align-dumb']:
         aligner = dumb_align
     elif arguments['--align-cls']:
@@ -100,11 +105,12 @@ def process_data_arguments(arguments):
         
     if arguments['--transducer'] in ['hacm', 'hard'] and \
         not (arguments['--substitution'] or arguments['--copy-as-substitution']):
-        dset = datasets.MinimalDataSet
+        dset = datasets.MinimalDataSet # Careful, might be buggy
     else:
-        dset = datasets.EditDataSet
+        dset = EditDataSet
 
     return {
+        'language'      : language,
         'dataset'       : dset,
         'aligner'       : aligner,
         'sigm2017format': arguments['--sigm2017format'],

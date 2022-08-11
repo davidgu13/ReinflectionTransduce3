@@ -6,7 +6,11 @@ WrittenInPython2.7/
 *.py.bak
 *.zip
 *.docx
+*.xlsx
 .data
+Results
+runs_scripts
+Misc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

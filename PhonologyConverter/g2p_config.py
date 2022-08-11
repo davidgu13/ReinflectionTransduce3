@@ -1,5 +1,6 @@
 __author__ = "David Guriel"
 import json
+import os
 
 place = ['labial', 'dental', 'alveolar', 'velarized-alveolar', 'post-alveolar', 'velar', 'uvular', 'glottal', 'palatal'] # 0-8
 manner = ['nasal', 'plosive', 'fricative', 'affricate', 'trill', 'tap', 'lateral', 'approximant', 'implosive'] # 9-17
@@ -9,14 +10,15 @@ height = ['open', 'open-mid', 'mid', 'close-mid', 'close'] # 22-26
 backness = ['front', 'back', 'central'] # 27-29
 roundness = ['rounded', 'unrounded'] # 30-31
 length = ['long'] # only for vowels; no occurence means short vowel # 32
-punctuations = [' ', '-', "'", "̇", '.', '#', '?'] # 33-38, '#' is for predictions of non-existent feature bundles (see languages_setup.py)
+punctuations = [' ', '-', "'", "̇", '.', '*', '?'] # 33-39
+# '*' is for predictions of non-existent feature bundles (see languages_setup.py). Note: this line differs from the original g2p_config file!
 
 phon_features = place + manner + voice + height + backness + roundness + length + punctuations
 idx2feature = dict(enumerate(phon_features))
 feature2idx = {v:k for k, v in idx2feature.items()} # => {'labial':0,...,'nasal':6,...,'front':18,'back':19}
 
 # for writing the dictionaries, use the command: json.dump({"vowels":p2f_vowels_dict, "consonants":p2f_consonants_dict}, open("phonemes.json","w",encoding='utf8'), indent=2)
-phonemes = json.load(open("phonemes.json", encoding='utf8'))
+phonemes = json.load(open(os.path.join("PhonologyConverter", "phonemes.json"), encoding='utf8'))
 p2f_consonants = {k:tuple(v) for k,v in phonemes['consonants'].items()}
 p2f_vowels     = {k:tuple(v) for k,v in phonemes['vowels'].items()}
 p2f_vowels.update({ k+'ː': v+('long',) for k,v in p2f_vowels.items()}) # account for long vowels (and double their number)
@@ -69,7 +71,7 @@ lav_p2g_dict = {**dict(zip(lav_phonemes, lav_alphabet)), **punctuations_g2p_dict
 def lav_phonemes2word(phonemes:[str]):
     return phonemes2graphemes_with_doubles(phonemes, lang='lav')
 def lav_clean_sample(x:str) -> str:
-    return x.replace('í', 'ī').replace('ŗ', 'r').replace("LgSPEC8", "LGSPEC8") # replace the 3 occurences of 'í' with 'ī', and the 28 occ. of 'ŗ'
+    return x.replace('y','i').replace('í', 'ī').replace('ŗ', 'r').replace("LgSPEC8", "LGSPEC8") # replace the 3 occurences of 'í' with 'ī', and the 28 occ. of 'ŗ'
 lav_components = [lav_g2p_dict, None, lav_phonemes2word, lav_clean_sample]
 # endregion Latvian - lav
 
@@ -176,7 +178,7 @@ def tur_phonemes2word(phonemes:[str]):
         i += 1
     return graphemes
 def tur_clean_sample(x:str) -> str:
-    return x.replace('İ', 'i')
+    return x.replace('İ', 'i').replace('i̇', 'i')
 tur_components = [tur_g2p_dict, tur_word2phonemes, tur_phonemes2word, tur_clean_sample]
 # endregion Turkish - tur
 
@@ -201,7 +203,7 @@ def fin_phonemes2word(phonemes:[str]):
     result = list(''.join(result).replace('x','ks'))
     return result
 def fin_clean_sample(x:str) -> str:
-    chars_to_remove = ['\xa0', ":", "/"]
+    chars_to_remove = ['\xa0', ":", "/", ","]
     for p in chars_to_remove: x = x.replace(p, "")
     x = x.replace("á", "a").replace("â", "a").replace("û", "u").replace("ü", "u")
     return x

@@ -1,17 +1,17 @@
-
-import os
-import time
 import random
-import progressbar
-import editdistance
+import time
 from collections import Counter
 
 import dynet as dy
+import editdistance
 import numpy as np
+import progressbar
 
 import util
-import datasets
+from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
+from DataRelatedClasses.utils import action2string
 from defaults import SANITY_SIZE
+from typing import Callable
 
 OPTIMIZERS = {'ADAM'    : #dy.AdamTrainer,
                           lambda m: dy.AdamTrainer(m, alpha=0.0005,
@@ -100,7 +100,7 @@ def internal_eval(batches, transducer, vocab,
 
             # evaluation
             correct_prediction = False
-            if (prediction in vocab.word and vocab.word.w2i[prediction] == sample.word):
+            if prediction in vocab.word and vocab.word.w2i[prediction] == sample.word:
                 correct_prediction = True
                 number_correct += 1
             
@@ -109,8 +109,8 @@ def internal_eval(batches, transducer, vocab,
                 # of the previous epoch or its an error
                 if predicted_actions != previous_predicted_actions[i] or not correct_prediction:
                     #
-                    print('BEFORE:    ', datasets.action2string(previous_predicted_actions[i], vocab))
-                    print('THIS TIME: ', datasets.action2string(predicted_actions, vocab))
+                    print('BEFORE:    ', action2string(previous_predicted_actions[i], vocab))
+                    print('THIS TIME: ', action2string(predicted_actions, vocab))
                     print('TRUE:      ', sample.act_repr)
                     print('PRED:      ', prediction)
                     print('WORD:      ', sample.word_str)
@@ -187,8 +187,8 @@ def internal_eval_beam(batches, transducer, vocab,
                 # of the previous epoch or its an error
                 if predicted_actions != previous_predicted_actions[i] or not correct_prediction:
                     #
-                    print('BEFORE:    ', datasets.action2string(previous_predicted_actions[i], vocab))
-                    print('THIS TIME: ', datasets.action2string(predicted_actions, vocab))
+                    print('BEFORE:    ', action2string(previous_predicted_actions[i], vocab))
+                    print('THIS TIME: ', action2string(predicted_actions, vocab))
                     print('TRUE:      ', sample.act_repr)
                     print('PRED:      ', prediction)
                     print('WORD:      ', sample.word_str)
@@ -206,7 +206,7 @@ def internal_eval_beam(batches, transducer, vocab,
 
 class TrainingSession(object):
     def __init__(self, model, transducer, vocab,
-                 train_data, dev_data,
+                 train_data: BaseDataSet, dev_data: BaseDataSet,
                  batch_size,
                  optimizer=None,
                  decbatch_size=None,
@@ -271,7 +271,7 @@ class TrainingSession(object):
             print('saved reloaded model as best model to {}'.format(tmp_model_path))
         
     def action2string(self, acts):
-        return datasets.action2string(acts, self.vocab)
+        return action2string(acts, self.vocab)
 
     def dev_eval(self, check_condition=True):
         # call internal_eval with dev batches
@@ -304,11 +304,10 @@ class TrainingSession(object):
             # a batch of training samples with MLE?
             dy.renew_cg()
             batch_loss = []
-            for sample in batch: 
+            for sample in batch:
                 in_feats = sample.in_pos, sample.in_feats
                 out_feats = sample.out_pos, sample.out_feats
-                loss, prediction, predicted_actions = self.transducer.transduce(
-                    sample.lemma, in_feats, out_feats, sample.actions, external_cg=True)
+                loss, _, _ = self.transducer.transduce(sample.lemma, in_feats, out_feats, sample.actions, external_cg=True)
                 batch_loss.extend(loss)
             batch_loss = -dy.average(batch_loss)
             if l2: batch_loss += l2 * self.transducer.l2_norm(with_embeddings=False)
@@ -565,7 +564,6 @@ class TrainingSession(object):
                      train_until_accuracy=None,
                      optimizer=None,
                      **kwargs):
-
         if optimizer is None:
             optimizer = self.optimizer
         self.trainer = optimizer(self.model)
@@ -655,28 +653,23 @@ class TrainingSession(object):
                     self.model.save(tmp_model_path)
                     print('saved new best model to {}'.format(tmp_model_path))
 
-                print(('epoch: {} train loss: {:.4f} dev loss: {:.4f} dev acc: {:.4f} '
-                   'train acc: {:.4f} best train acc: {:.4f} best dev acc: {:.4f} (epoch {}) '
-                   'best dev loss: {:.7f} (epoch {}) patience = {}').format(
-                   epoch, self.avg_loss, avg_dev_loss, dev_accuracy, train_accuracy,
-                   self.best_train_accuracy, self.best_dev_accuracy, self.best_dev_acc_epoch,
-                   self.best_avg_dev_loss, self.best_dev_loss_epoch, patience))
+                print(f'epoch: {epoch}, train acc: {train_accuracy:.4f}, best train acc: {self.best_train_accuracy:.4f}, train loss: {self.avg_loss:.4f}, '
+                      f'dev acc: {dev_accuracy:.4f}, best dev acc: {self.best_dev_accuracy:.4f} (epoch {self.best_dev_acc_epoch}), dev loss: {avg_dev_loss:.4f}, '
+                      f'best dev loss: {self.best_avg_dev_loss:.7f} (epoch {self.best_dev_loss_epoch}), patience = {patience}')
 
             else:
+                dev_accuracy = -1
                 patience = 0
                 self.model.save(tmp_model_path)
                 print('saved last model to {}'.format(tmp_model_path))
-            print(('epoch: {} train loss: {:.4f} '
-               'train acc: {:.4f} best train acc: {:.4f} best dev acc: {:.4f} (epoch {}) '
-               'best dev loss: {:.7f} (epoch {}) patience = {}').format(
-               epoch, self.avg_loss, train_accuracy,
-               self.best_train_accuracy, self.best_dev_accuracy, self.best_dev_acc_epoch,
-               self.best_avg_dev_loss, self.best_dev_loss_epoch, patience))
 
+                print(f'epoch: {epoch}, train acc: {train_accuracy:.4f}, best train acc: {self.best_train_accuracy:.4f}, train loss: {self.avg_loss:.4f}, '
+                      f'best dev acc: {self.best_dev_accuracy:.4f} (epoch {self.best_dev_acc_epoch}), '
+                      f'best dev loss: {self.best_avg_dev_loss:.7f} (epoch {self.best_dev_loss_epoch}), patience = {patience}')
 
             # LOG LATEST RESULTS
             with open(log_file_path, 'a') as a:
-                a.write("{}\t{}\t{}\n".format(epoch, self.avg_loss, train_accuracy))
+                a.write(f"{epoch}\t{self.avg_loss:.6f}\t{train_accuracy}\t{dev_accuracy}\n")
             
             if patience == max_patience:
                 print('out of patience after {} epochs'.format(epoch + 1))
@@ -692,7 +685,7 @@ class TrainingSession(object):
 
 
 def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
-                       pred_path, gold_path, sigm2017format):
+                       pred_path: Callable[[str], str], gold_path, sigm2017format):
 
     """Runs internal greedy and beam-search evaluations as well as
        launches external eval script. Returns greedy accuracy (hm...?)"""
@@ -707,10 +700,10 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
     # write out greedy predictions and scores
     util.external_eval(pred_path('greedy'), gold_path, batches, predictions, sigm2017format)
 
-    # BEAM-SEARCH-BASED PREDICTIONS FROM THIS MODEL 
+    # BEAM-SEARCH-BASED PREDICTIONS FROM THIS MODEL
     if beam_widths:
         print('\nDecoding with beam search...')
-        import hacm, hacm_sub, hard
+        import hacm_sub
         if not callable(getattr(transducer, "beam_search_decode", None)) or \
             isinstance(transducer, hacm_sub.MinimalTransducer):
             print('Transducer does not implement beam search.')
@@ -730,8 +723,7 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
     return greedy_accuracy
 
 
-def dev_external_eval(batches, transducer, vocab, paths,
-                      data_arguments, model_arguments, optim_arguments):
+def dev_external_eval(batches, transducer, vocab, paths, data_arguments, model_arguments, optim_arguments):
     
     accuracy =  withheld_data_eval("dev", batches, transducer, vocab, optim_arguments['beam-widths'],
                        paths['dev_output'], paths['dev_path'], data_arguments['sigm2017format'])
@@ -745,3 +737,5 @@ def test_external_eval(batches, transducer, vocab, paths, beam_widths, sigm2017f
                                   paths['test_output'], paths['test_path'], sigm2017format)
     with open(paths['stats_file_path'], 'a+') as f:
         f.write(f"TEST ACCURACY (internal evaluation) = {accuracy}\n")
+
+    return accuracy

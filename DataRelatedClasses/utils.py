@@ -1,3 +1,4 @@
+from DataRelatedClasses.Vocabs.EditVocab import EditVocab
 
 def remove_pipe(string):
     string = string.strip('|')
@@ -10,8 +11,12 @@ def remove_pipe(string):
     return string
 
 
-def action2string(actions, vocab):
-    return ''.join(vocab.act.i2w[a] for a in actions)
+def action2string(actions, vocab: EditVocab):
+    stringified_actions = [vocab.act.i2w[a] for a in actions]
+    if '$' in vocab.act.i2w.keys():
+        return ', '.join(stringified_actions)
+    else:
+        return ''.join(stringified_actions)
 
 def feats2string(pos, feats, vocab):
     if pos:

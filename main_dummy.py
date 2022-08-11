@@ -88,8 +88,6 @@ Options:
 # print(f"docopt(__doc__) = \n{arguments}")
 # print()
 
-from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
-
 def Vocab_example():
     from DataRelatedClasses.Vocabs.Vocab import Vocab
     # obj = Vocab()
@@ -103,28 +101,88 @@ def Vocab_example():
 
     obj.printer()
 
-
-
 def dataset_example():
-    import pdb
-    pdb.set_trace()
-    # dset = EditDataSet(False, False, False)
-    print("\n\nPrinting info about the dataset")
-    train_data = EditDataSet.from_file(os.path.join('.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab())
+    from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
+    from DataRelatedClasses.Vocabs.EditVocab import EditVocab
+    import os
+
+    from aligners import cls_align
+    kwargs =  {'sigm2017format': False, 'language': 'kat', 'aligner': cls_align, 'param-tying': True}
+    train_data = EditDataSet.from_file(os.path.join('..', '.data', 'Reinflection', 'kat.V', 'kat.V.form.dev.txt'), EditVocab(), **kwargs)
     print(f"train_data.vocab = {train_data.vocab}")
-    print(f"train_data.training_data = {train_data.training_data}")
-    print(f"train_data.length = {train_data.length}")
-    print(f"train_data.filename = {train_data.filename}")
-    print(f"type(train_data.samples) = {type(train_data.samples)}")
-    print(f"train_data.samples[5] = {train_data.samples[5]}")
-    print(f"train_data.tag_wraps = {train_data.tag_wraps}")
-    print(f"train_data.verbose = {train_data.verbose}")
+
+    def print_object(o):
+        from pprint import pprint
+        pprint(vars(o))
+
+def kwargs_example():
+    def f(a, b, c=8, d=9):
+        print(f"\na = {a}")
+        print(f"b = {b}")
+        print(f"c = {c}")
+        print(f"d = {d}\n")
+
+    def f2(a,b, **kwargs):
+        f(a, b, **kwargs)
+
+    f(1,2,3,4)
+    f2(1,2)
+
+    kwargsss1 = {'c': 5, 'd': 6}
+    f2(1, 2, **kwargsss1)
+
+    kwargsss2 = {'c': 5, 'd': 6}
+    f2(1, 2, **kwargsss2)
+
+def phonology_example():
+    # This example is taken from the baseline model implementation (PhonologyReinflection), as sanity checks.
+    from PhonologyConverter.languages_setup import LanguageSetup
+
+    # made-up words to test the correctness of the g2p/p2g conversions algorithms (for debugging purposes):
+    example_words = {'kat': 'არ მჭირდ-ებოდყეტ', 'swc': "magnchdhe-ong jwng'a", 'sqi': 'rdhëije rrçlldgj-ijdhegnjzh', 'lav': 'abscā t-raķkdzhēļšanģa',
+                     'bul': 'най-ясюногщжто', 'hun': 'hűdályiokró- l eéfdzgycsklynndzso nyoyaxy', 'tur': 'yığmalılksar mveğateğwypûrtâşsmış', 'fin': 'ixlmksnngvnk- èeé aatööböyynyissä'}
+
+    language = 'kat'
+    word = example_words[language]
+    phon_use_attention = False
+    converter = LanguageSetup.create_phonology_converter(language, phon_use_attention)
+
+    print(f"word = {word}")
+    features_word = converter.word2phonemes(word, 'features')
+    print(f"g -> f => {features_word}")
+    reconstructed_word = converter.phonemes2word(features_word, 'features')
+    print(f"f -> g => {reconstructed_word}")
+
+    if word == reconstructed_word: print(f"Perfect conversion!")
+    # Note: for the last 3 languages, the conversion is not perfect. I specifically chose such
+    # problematic examples, but most of the words *are* properly converted.
+
+def classes_example():
+    class A:
+        def __init__(self, x = None, encoding = 'utf8'):
+            self.x = x
+            self.encoding = encoding
+
+    class B:
+        def __init__(self, encoding):
+            self.a1 = A('1', encoding = encoding)
+            self.a2 = A(encoding = encoding)
+            self.a3 = A()
+
+    class C(B):
+        def __init__(self, y='2', encoding=None):
+            super(C, self).__init__(encoding)
+            self.y = y
+
+    c = C()
+    print(c.a1.encoding)
+    print(c.a2.encoding)
+    print(c.a3.encoding)
+
 
 if __name__ == '__main__':
-    # Import EditVocab class. See how it looks for a naive g-g reinflection dataset
-    # Do the same for AlignedDataSample class.
-    # Do the same for EditDataset class.
-    # from DataRelatedClasses.EditVocab import EditVocab
-    # obj = EditVocab(pos_emb=False, avm_feat_format=False, param_tying=True, encoding=None)
+    # Vocab_example()
+    dataset_example()
+    # phonology_example()
 
-    Vocab_example()
+    # classes_example()
