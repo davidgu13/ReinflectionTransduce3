@@ -2,7 +2,7 @@ from pandas import DataFrame, read_excel
 import os
 from datetime import datetime
 from os import remove
-from os.path import join, basename, getmtime
+from os.path import join, basename, getmtime, isdir
 
 def get_difference(folder_name, verbose = False):
     file_name = join(folder_name, "f.log")
@@ -35,8 +35,10 @@ def extract_durations(results_folder=None):
     df.to_excel(excel_file)
 
 if __name__ == '__main__':
-    df = read_excel("Durations.xlsx", "reruns_list")
-    runs_scripts_folder = join("runs_scripts", "f_f_runs", "42", "reruns")
+    df = read_excel("Durations.xlsx", "runs_list")
+    seed = "100"
+    runs_scripts_folder = join("runs_scripts", "f_f_runs", seed)
+    if not isdir(runs_scripts_folder): os.makedirs(runs_scripts_folder)
 
     curr_index = -1
     for j in range(df.shape[0]):
@@ -47,10 +49,10 @@ if __name__ == '__main__':
             curr_index = Index
             lines_to_write.append(f"# batch {Index}")
 
-        lines_to_write.append(f"bash dummy.sh {row.Language} {row.POS} {row.Split} 42")
+        lines_to_write.append(f"bash dummy.sh {row.Language} {row.POS} {row.Split} {seed}")
 
         for line in lines_to_write:
-            with open(join(runs_scripts_folder, f"group{Index}-42.sh"), "a+") as file:
+            with open(join(runs_scripts_folder, f"group{Index}-{seed}.sh"), "a+") as file:
                 file.write(line+'\n')
 
     # extract_durations(join("Results", "None_42_f_f"))
