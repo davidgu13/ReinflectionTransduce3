@@ -14,7 +14,7 @@ import numpy as np
 import torch
 from transformers import AutoConfig, AutoModel, AutoTokenizer
 
-import dynet_transformer as dytf
+import TransformerModels.dynet_transformer as dytf
 
 
 # define the activation functon

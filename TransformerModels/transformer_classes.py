@@ -1,5 +1,7 @@
 # Basic classes, such as MultiHeadAttention
-from dynet import *
+from dynet import inputTensor, reshape, rectify, dropout_dim, affine_transform, inputVector, concatenate_to_batch, \
+    concatenate_cols, concatenate, pick_range, pick_batch_elems, transpose, softmax, cmult, layer_norm
+import numpy as np
 
 
 def make_time_distributed(x):
@@ -41,12 +43,12 @@ class LinearLayer(object):
             try:
                 init_w = LeCunUniformInitializer(input_dim)
                 init_bias = LeCunUniformInitializer(output_dim)
-            except:
+            except NameError:
                 pass
 
         self._p_W = model.add_parameters((output_dim, input_dim), init=init_w, name=name + '.ll.w')
         if have_bias:
-            self._p_b = model.add_parameters((output_dim), init=init_bias, name=name + '.ll.b')
+            self._p_b = model.add_parameters(output_dim, init=init_bias, name=name + '.ll.b')
 
     def __call__(self, x, flatten_sequence=False):
         """
@@ -128,7 +130,7 @@ class MaskBase(object):
         self._i_mask_fb = create_triangle_mask(length, False)
 
     def create_seq_mask_expr(self, v_seq_masks, self_attn=True):
-        l = len(v_seq_masks[0])
+        # l = len(v_seq_masks[0])
 
         v_i_seq_masks = []
         for i in range(len(v_seq_masks)):
@@ -350,8 +352,8 @@ class NormalizationLayer(object):
     """
 
     def __init__(self, model, dim, name=''):
-        self._p_ln_g = model.add_parameters((dim), 1.0, name + '.layer-norm.g')
-        self._p_ln_b = model.add_parameters((dim), 0.0, name + '.layer-norm.b')
+        self._p_ln_g = model.add_parameters(dim, 1.0, name + '.layer-norm.g')
+        self._p_ln_b = model.add_parameters(dim, 0.0, name + '.layer-norm.b')
 
     def __call__(self, x):
         x_in = make_time_distributed(x)

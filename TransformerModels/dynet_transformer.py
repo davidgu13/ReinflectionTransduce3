@@ -4,7 +4,7 @@ from codecs import open
 
 import dynet as dy
 
-from transformer_classes import *
+from TransformerModels.transformer_classes import *
 
 
 class EncoderLayer:
