@@ -21,7 +21,7 @@ class Transducer(object):
         self.ENC_LAYERS     = enc_layers
         self.DEC_HIDDEN_DIM = dec_hidden_dim
         self.DEC_LAYERS     = dec_layers
-        self.LSTM           = dy.VanillaLSTMBuilder if vanilla_lstm else dy.CoupledLSTMBuilder
+        self.LSTM           = dy.VanillaLSTMBuilder if vanilla_lstm else dy.CoupledLSTMBuilder # usually the latter is chosen
         self.MLP_DIM        = mlp_dim
         self.NONLIN         = NONLINS.get(nonlin, 'ReLU')
         self.LUCKY_W        = lucky_w
@@ -42,12 +42,9 @@ class Transducer(object):
         self.INSERTS = list(range(self.vocab.number_specials, self.NUM_ACTS))
 
         # report stats
-        print('{} actions: {}'.format(self.NUM_ACTS,
-                                      ', '.join(list(self.vocab.act.keys()))))
-        print('{} features: {}'.format(self.NUM_FEATS,
-                                       ', '.join(list(self.vocab.feat.keys()))))
-        print('{} lemma chars: {}'.format(self.NUM_CHARS,
-                                          ', '.join(list(self.vocab.char.keys()))))
+        print(f'{self.NUM_ACTS} actions: {", ".join(list(self.vocab.act.keys()))}')
+        print(f'{self.NUM_FEATS} features: {", ".join(list(self.vocab.feat.keys()))}')
+        print(f'{self.NUM_CHARS} lemma chars: {", ".join(list(self.vocab.char.keys()))}')
 
         if self.avm_feat_format:
             self.NUM_FEAT_TYPES = self.vocab.feat_type_train
@@ -117,16 +114,16 @@ class Transducer(object):
         if self.double_feats:
             self.CLASSIFIER_IMPUT_DIM += self.FEAT_INPUT_DIM * 2
 
-        print(' * LEMMA biLSTM:      IN-DIM: {}, OUT-DIM: {}'.format(2 * self.CHAR_DIM, 2 * self.ENC_HIDDEN_DIM))
-        print(' * WORD LSTM:         IN-DIM: {}, OUT-DIM: {}'.format(self.WORD_REPR_DIM, self.DEC_HIDDEN_DIM))
-        print(' LEMMA LSTMs have {} layer(s)'.format(self.ENC_LAYERS))
-        print(' WORD LSTM has {} layer(s)'.format(self.DEC_LAYERS))
-        print()
-        print(' * CHAR EMBEDDINGS:   IN-DIM: {}, OUT-DIM: {}'.format(self.NUM_CHARS, self.CHAR_DIM))
+        print(f' * LEMMA biLSTM:      IN-DIM: {2 * self.CHAR_DIM}, OUT-DIM: {2 * self.ENC_HIDDEN_DIM}')
+        print(f' * WORD LSTM:         IN-DIM: {self.WORD_REPR_DIM}, OUT-DIM: {self.DEC_HIDDEN_DIM}')
+        print(f' LEMMA LSTMs have {self.ENC_LAYERS} layer(s)')
+        print(f' WORD LSTM has {self.DEC_LAYERS} layer(s)\n')
+
+        print(f' * CHAR EMBEDDINGS:   IN-DIM: {self.NUM_CHARS}, OUT-DIM: {self.CHAR_DIM}')
         if not self.param_tying:
-            print(' * ACTION EMBEDDINGS: IN-DIM: {}, OUT-DIM: {}'.format(self.NUM_ACTS, self.ACTION_DIM))
+            print(f' * ACTION EMBEDDINGS: IN-DIM: {self.NUM_ACTS}, OUT-DIM: {self.ACTION_DIM}')
         if self.FEAT_DIM:
-            print(' * FEAT. EMBEDDINGS:  IN-DIM: {}, OUT-DIM: {}'.format(self.NUM_FEATS, self.FEAT_DIM))
+            print(f' * FEAT. EMBEDDINGS:  IN-DIM: {self.NUM_FEATS}, OUT-DIM: {self.FEAT_DIM}')
 
     def _classifier(self, model):
         # single-hidden-layer classifier that works on feature presentation
@@ -237,15 +234,6 @@ class Transducer(object):
     def transduce(self, lemma, in_feats, out_feats, oracle_actions=None, external_cg=True, sampling=False, unk_avg=True):
         # Returns an expression of the loss for the sequence of actions.
         # (that is, the oracle_actions if present or the predicted sequence otherwise)
-        def _valid_actions(encoder):
-            valid_actions = []
-            if len(encoder) > 1:
-                valid_actions += [COPY, DELETE]
-            else:
-                valid_actions += [END_WORD]
-            valid_actions += self.INSERTS
-            return valid_actions
-
         show_oracle_actions = False
 
         if not external_cg:
@@ -291,6 +279,15 @@ class Transducer(object):
             print()
             print(''.join([self.vocab.act.i2w[a] for a in oracle_actions]))
             print(''.join([self.vocab.char.i2w[a] for a in lemma]))
+
+        def _valid_actions(encoder):
+            valid_actions = []
+            if len(encoder) > 1:
+                valid_actions += [COPY, DELETE]
+            else:
+                valid_actions += [END_WORD]
+            valid_actions += self.INSERTS
+            return valid_actions
 
         while len(action_history) <= MAX_ACTION_SEQ_LEN:
 

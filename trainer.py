@@ -552,18 +552,8 @@ class TrainingSession(object):
         self.run_training(MRT_batch_update, **kwargs)
 
 
-    def run_training(self,
-                     batch_update,
-                     epochs,
-                     max_patience,
-                     pick_best_accuracy,
-                     dropout,
-                     log_file_path,
-                     tmp_model_path,
-                     check_condition,
-                     train_until_accuracy=None,
-                     optimizer=None,
-                     **kwargs):
+    def run_training(self, batch_update, epochs, max_patience, pick_best_accuracy, dropout, log_file_path,
+                     tmp_model_path, check_condition, train_until_accuracy=None, optimizer=None, **kwargs):
         if optimizer is None:
             optimizer = self.optimizer
         self.trainer = optimizer(self.model)
@@ -596,12 +586,9 @@ class TrainingSession(object):
             a.write('epoch\tavg_loss\ttrain_accuracy\tdev_accuracy\n')
 
         patience = 0
-        
         for epoch in range(epochs):
-            
             print('training...')
             then = time.time()
-            
             train_loss = 0.
 
             train = self.train_data.samples
@@ -615,11 +602,11 @@ class TrainingSession(object):
             for j, batch in enumerate(batches):
                 train_loss += batch_update(batch, epoch)
                 if j > 0 and j % 100 == 0: print('\t\t...{} batches'.format(j))
-            print('\t\t...{} batches'.format(j))
+            print(f'\t\t...{j} batches')
 
             # DISABLE DROPOUT AFTER TRAINING
             if dropout: self.transducer.disable_dropout()
-            print('\t...finished in {:.3f} sec'.format(time.time() - then))
+            print(f'\t...finished in {(time.time() - then):.3f} sec')
             self.avg_loss = train_loss / self.train_len
             print('Average train loss: ', self.avg_loss)
             
@@ -638,14 +625,14 @@ class TrainingSession(object):
                     self.best_dev_accuracy = dev_accuracy
                     self.best_dev_acc_epoch = epoch
                     # using dev acc for early stopping
-                    print('Found best dev accuracy so far {:.7f}'.format(self.best_dev_accuracy))
+                    print(f'Found best dev accuracy so far {self.best_dev_accuracy:.7f}')
                     if pick_best_accuracy: patience = 0
 
                 if avg_dev_loss < self.best_avg_dev_loss:
                     self.best_avg_dev_loss = avg_dev_loss
                     self.best_dev_loss_epoch = epoch
                     # using dev loss for early stopping
-                    print('Found best dev loss so far {:.7f}'.format(self.best_avg_dev_loss))
+                    print(f'Found best dev loss so far {self.best_avg_dev_loss:.7f}')
                     if not pick_best_accuracy: patience = 0
                     
                 if patience == 0:
@@ -653,9 +640,10 @@ class TrainingSession(object):
                     self.model.save(tmp_model_path)
                     print('saved new best model to {}'.format(tmp_model_path))
 
-                print(f'epoch: {epoch}, train acc: {train_accuracy:.4f}, best train acc: {self.best_train_accuracy:.4f}, train loss: {self.avg_loss:.4f}, '
-                      f'dev acc: {dev_accuracy:.4f}, best dev acc: {self.best_dev_accuracy:.4f} (epoch {self.best_dev_acc_epoch}), dev loss: {avg_dev_loss:.4f}, '
-                      f'best dev loss: {self.best_avg_dev_loss:.7f} (epoch {self.best_dev_loss_epoch}), patience = {patience}')
+                print(f'epoch: {epoch}, train acc: {train_accuracy:.4f}, best train acc: {self.best_train_accuracy:.4f}, '
+                      f'train loss: {self.avg_loss:.4f}, dev acc: {dev_accuracy:.4f}, best dev acc: {self.best_dev_accuracy:.4f}'
+                      f' (epoch {self.best_dev_acc_epoch}), dev loss: {avg_dev_loss:.4f}, best dev loss: {self.best_avg_dev_loss:.7f}'
+                      f' (epoch {self.best_dev_loss_epoch}), patience = {patience}')
 
             else:
                 dev_accuracy = -1
@@ -663,8 +651,8 @@ class TrainingSession(object):
                 self.model.save(tmp_model_path)
                 print('saved last model to {}'.format(tmp_model_path))
 
-                print(f'epoch: {epoch}, train acc: {train_accuracy:.4f}, best train acc: {self.best_train_accuracy:.4f}, train loss: {self.avg_loss:.4f}, '
-                      f'best dev acc: {self.best_dev_accuracy:.4f} (epoch {self.best_dev_acc_epoch}), '
+                print(f'epoch: {epoch}, train acc: {train_accuracy:.4f}, best train acc: {self.best_train_accuracy:.4f}, '
+                      f'train loss: {self.avg_loss:.4f}, best dev acc: {self.best_dev_accuracy:.4f} (epoch {self.best_dev_acc_epoch}), '
                       f'best dev loss: {self.best_avg_dev_loss:.7f} (epoch {self.best_dev_loss_epoch}), patience = {patience}')
 
             # LOG LATEST RESULTS
