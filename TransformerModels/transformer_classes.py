@@ -268,6 +268,7 @@ class MultiHeadAttentionLayer(object):
                 LinearLayer(model, dim, dim / nheads, use_bias, name=name + '.attn.h' + str(i) + '.linear-keys'))
             self._v_l_V.append(
                 LinearLayer(model, dim, dim / nheads, use_bias, name=name + '.attn.h' + str(i) + '.linear-values'))
+
         # final layer
         self._l_O = LinearLayer(model, dim, dim, use_bias, name=name + '.attn.linear-final')
 

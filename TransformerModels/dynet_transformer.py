@@ -4,7 +4,8 @@ from codecs import open
 
 import dynet as dy
 
-from TransformerModels.transformer_classes import *
+from TransformerModels.transformer_classes import ParallelMultiHeadAttentionLayer, FeedForwardLayer, \
+    NormalizationLayer, SinusoidalPositionalEncoder, LinearLayer, MaskBase
 
 
 class EncoderLayer:
@@ -111,8 +112,8 @@ class Embeddings:
             self._positional_enc = model.add_lookup_parameters((options.max_pos_len, options.num_units),
                                                                name=name + '.embeddings.poslp')
 
-        self._seg_enc = model.add_lookup_parameters((options.seg_tok_types, options.num_units),
-                                                    name=name + '.embeddings.seglp') if options.seg_tok_types and not force_no_seg else None
+        self._seg_enc = model.add_lookup_parameters((options.seg_tok_types, options.num_units), name=name + '.embeddings.seglp')\
+            if options.seg_tok_types and not force_no_seg else None
         self._scale_emb = math.sqrt(options.num_units) if options.fscale_emb else 1
         self.nheads = options.nheads
         self.num_units = options.num_units
@@ -145,19 +146,19 @@ class Embeddings:
         #    embeds = self._positional_enc(embeds)
 
         # lookup all the inds
-        embeds = lookup_batch(self._embed_lp, inds)
+        embeds = dy.lookup_batch(self._embed_lp, inds)
         if inds_seg:
-            embeds += lookup_batch(self._seg_enc, inds_seg)
+            embeds += dy.lookup_batch(self._seg_enc, inds_seg)
         # multiply by the scale, and then do positional
         embeds *= self._scale_emb
         # add the positional embeddings
         if not self.use_sinusoidal_encodings:
-            embeds += lookup_batch(self._positional_enc, inds_pos)
+            embeds += dy.lookup_batch(self._positional_enc, inds_pos)
         else:
             embeds = self._positional_enc(embeds)
 
         # reshape!
-        embeds = reshape(transpose(embeds), (self.num_units, cur_max_len), len(sentences))
+        embeds = dy.reshape(dy.transpose(embeds), (self.num_units, cur_max_len), len(sentences))
         if dropout > 0.0:
             embeds = dy.dropout_dim(embeds, 1, dropout)
 
@@ -362,7 +363,7 @@ if __name__ == '__main__':
     i2w_src = {i: w for w, i in w2i_src.items()}
     i2w_tgt = {i: w for w, i in w2i_tgt.items()}
 
-    import transformer_train_decode as ttd
+    import TransformerModels.transformer_train_decode as ttd
 
     ttd.kSRC_UNK = w2i_src['<unk>']
     ttd.kSRC_BLANK = w2i_src['<blank>']
@@ -373,7 +374,7 @@ if __name__ == '__main__':
     ttd.kTGT_SOS = w2i_tgt['<s>']
     ttd.kTGT_EOS = w2i_tgt['</s>']
 
-    from transformer_train_decode import transformer_beam_decode
+    from TransformerModels.transformer_train_decode import transformer_beam_decode
 
     with open('test.en', 'r', encoding='utf8') as w:
         for iL, l in enumerate(w):
