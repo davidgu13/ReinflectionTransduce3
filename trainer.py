@@ -217,12 +217,12 @@ class TrainingSession(object):
         self.optimizer = OPTIMIZERS.get(optimizer, 'ADADELTA')
         self.trainer = None  # initialized only in training
         self.vocab = vocab
-  
+
         # DATA and BATCHES
         self.train_data = train_data
         self.dev_data = dev_data
         self.dev_batches = dev_batches
-        
+
         self.batch_size = batch_size
         # use different (larger) batch size for decoding
         self.decbatch_size = decbatch_size if decbatch_size else batch_size
@@ -269,7 +269,7 @@ class TrainingSession(object):
         if tmp_model_path and tmp_model_path != path2model:
             self.model.save(tmp_model_path)
             print('saved reloaded model as best model to {}'.format(tmp_model_path))
-        
+
     def action2string(self, acts):
         return action2string(acts, self.vocab)
 
@@ -280,7 +280,7 @@ class TrainingSession(object):
                           self.dev_predicted_actions,
                           check_condition=check_condition, name='dev')
         return dev_accuracy, avg_dev_loss
-    
+
     def train_eval(self, check_condition=True):
         # call internal_eval with train batches
         train_dev_accuracy, avg_loss, _, self.train_predicted_actions = \
@@ -288,7 +288,7 @@ class TrainingSession(object):
                           self.train_predicted_actions,
                           check_condition=check_condition, name='train')
         return train_dev_accuracy, avg_loss
-    
+
     def run_MLE_training(self, **kwargs):
 
         print('Running MLE training...')
@@ -323,13 +323,13 @@ class TrainingSession(object):
 
         print('Running RL training...')
         #print 'Trainer attributes: ', self.trainer.__dict__
-        
+
         sample_size = kwargs['sample_size']
         scale_neg = kwargs['scale_negative']
         beta_ned = kwargs['beta']
         use_baseline = kwargs['baseline']
         verbose = True if kwargs['check_condition'] else False
-        
+
         print('Will draw {} samples per training sample.'.format(sample_size))
         print('Will use greedy baseline for reward correction.' if use_baseline else 'Will not use baseline reward correction.')
         print('Will apply negative scaling of {}.'.format(scale_neg))
@@ -347,9 +347,9 @@ class TrainingSession(object):
                 #reward = -1*int(editdistance.eval(word_str, prediction))/len(word_str)
                 reward = -beta_ned * editdistance.eval(word_str, prediction) / max(len(word_str), len(prediction))
             return reward
-        
+
         def RL_batch_update(batch, *args):
-            
+
             dy.renew_cg()
             batch_loss = []
             rewards = []
@@ -359,7 +359,7 @@ class TrainingSession(object):
                 word = sample.word
                 word_str = sample.word_str
                 feats = sample.pos, sample.feats
-                
+
                 if use_baseline:
                     # BASELINE PREDICTION
                     _, prediction_b, predicted_actions_b = \
@@ -368,7 +368,7 @@ class TrainingSession(object):
                     reward_b = compute_reward(word, word_str, prediction_b)
                 else:
                     actions = tuple(sample.actions)
- 
+
                 for _ in range(sample_size):
 
                     # SAMPLING-BASED PREDICTION
@@ -376,12 +376,12 @@ class TrainingSession(object):
                         self.transducer.transduce(lemma, feats, sampling=True, external_cg=True)
                     # SAMPLING-BASED REWARD
                     reward = compute_reward(word, word_str, prediction)
-                    
+
                     if use_baseline:
                         sample_reward = reward - reward_b
                     else:
                         sample_reward = 0. if tuple(predicted_actions) == actions else reward
-                    
+
                     if verbose and use_baseline and sample_reward and reward == 1.:
                         # i.e. sampling produced a correct prediction via a sequence of actions
                         # different from the argmax approach of the baseline.
@@ -395,7 +395,7 @@ class TrainingSession(object):
 
                     if scale_neg and sample_reward < 0:
                         sample_reward = scale_neg*sample_reward
-                    
+
                     if sample_reward:
                         rewards.append(sample_reward)
                         batch_loss.append(-dy.average(loss))
@@ -428,12 +428,12 @@ class TrainingSession(object):
 
         print('Running MRT training with sampling...')
         #print 'Trainer attributes: ', self.trainer.__dict__
-        
+
         sample_size = kwargs['sample_size']
         alpha_p  = kwargs['alpha']  #0.05
         beta_ned = kwargs['beta']
         verbose = True if kwargs['check_condition'] else False
-        
+
         print('Alpha parameter will be {}'.format(alpha_p))
         print('Beta scaling factor for NED will be {}'.format(beta_ned))
         print('Sample size will be {}'.format(sample_size))
@@ -442,7 +442,7 @@ class TrainingSession(object):
             # `word` is an integer code,
             # `word_str` is the string corresponding to this code,
             # `prediction` is a string
-            
+
             # This is a normalized edit distance cost
             # The better the prediction, the lower the reward.
             if (prediction in self.vocab.word and
@@ -453,13 +453,13 @@ class TrainingSession(object):
                 # the smaller the distance the better
                 reward = beta_ned * editdistance.eval(word_str, prediction) / max(len(word_str), len(prediction))
             return reward
-        
+
         def MRT_batch_update(batch, epoch):
-            
+
             dy.renew_cg()
-            
+
             alpha = dy.scalarInput(alpha_p)
-            
+
             batch_loss = []
             rewards = []
             for sample in batch:
@@ -470,7 +470,7 @@ class TrainingSession(object):
                 in_feats = sample.in_pos, sample.in_feats
                 out_feats = sample.out_pos, sample.out_feats
                 actions = sample.actions
- 
+
                 # ORACLE PREDICTION
                 #loss, prediction_b, predicted_actions_b = \
                 gold_loss, _, _ = \
@@ -503,7 +503,7 @@ class TrainingSession(object):
                     else:
                         seen_predicted_acts.add(predicted_actions)
                 #for _, loss, prediction, predicted_actions in hypotheses:
-                    
+
                     # COMPUTE REWARDS
                     reward = compute_reward(word, word_str, prediction)
 
@@ -521,7 +521,7 @@ class TrainingSession(object):
                     sample_rewards = dy.inputVector(sample_rewards)
                     q_unnorm = dy.pow(dy.exp(sample_losses), alpha)
                     q = dy.cdiv(q_unnorm, dy.sum_elems(q_unnorm))
-                
+
                     if verbose:
                         print('q', q.npvalue())
                         print('sample_rewards', sample_rewards.npvalue())
@@ -558,12 +558,12 @@ class TrainingSession(object):
             optimizer = self.optimizer
         self.trainer = optimizer(self.model)
         print('Initialized trainer with: {}.'.format(optimizer))
-        
+
         if dropout:
             print('Using dropout of {}.'.format(dropout))
         else:
             print('Not using dropout.')
-        
+
         if check_condition is False:
             check_condition = lambda e: False
         elif check_condition == 2:  # max verbose flag...
@@ -576,7 +576,7 @@ class TrainingSession(object):
         else:
             print('Will train for a maximum of {} epochs with patience of {}.'.format(epochs, max_patience))
         print('Will early stop based on dev {}.'.format('accuracy' if pick_best_accuracy else 'loss'))
-    
+
         # PROGRESS BAR INIT
         widgets = [progressbar.Bar('>'), ' ', progressbar.ETA()]
         train_progress_bar = progressbar.ProgressBar(widgets=widgets, maxval=epochs).start()
@@ -595,10 +595,10 @@ class TrainingSession(object):
             random.shuffle(train)
             batches = [train[i:i+self.batch_size] for i in range(0, self.train_len, self.batch_size)]
             print('Number of train batches: {}.'.format(len(batches)))
-            
+
             # ENABLE DROPOUT
             if dropout: self.transducer.set_dropout(dropout)
-            
+
             for j, batch in enumerate(batches):
                 train_loss += batch_update(batch, epoch)
                 if j > 0 and j % 100 == 0: print('\t\t...{} batches'.format(j))
@@ -609,12 +609,12 @@ class TrainingSession(object):
             print(f'\t...finished in {(time.time() - then):.3f} sec')
             self.avg_loss = train_loss / self.train_len
             print('Average train loss: ', self.avg_loss)
-            
+
             # EVALUATE MODEL ON SUBSET OF TRAIN (SANITY)
             train_accuracy, avg_loss = self.train_eval(check_condition(epoch))
             if train_accuracy > self.best_train_accuracy:
                 self.best_train_accuracy = train_accuracy
-                    
+
             patience += 1
 
             # EVALUATE MODEL ON DEV
@@ -634,7 +634,7 @@ class TrainingSession(object):
                     # using dev loss for early stopping
                     print(f'Found best dev loss so far {self.best_avg_dev_loss:.7f}')
                     if not pick_best_accuracy: patience = 0
-                    
+
                 if patience == 0:
                     # patience has been reset to 0, so save currently best model
                     self.model.save(tmp_model_path)
@@ -658,7 +658,7 @@ class TrainingSession(object):
             # LOG LATEST RESULTS
             with open(log_file_path, 'a') as a:
                 a.write(f"{epoch}\t{self.avg_loss:.6f}\t{train_accuracy}\t{dev_accuracy}\n")
-            
+
             if patience == max_patience:
                 print('out of patience after {} epochs'.format(epoch + 1))
                 train_progress_bar.finish()
@@ -677,7 +677,7 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
 
     """Runs internal greedy and beam-search evaluations as well as
        launches external eval script. Returns greedy accuracy (hm...?)"""
- 
+
     # GREEDY PREDICTIONS FROM THIS MODEL 
     greedy_accuracy, _, predictions, _ = internal_eval(batches,
         transducer, vocab, None, check_condition=False, name=name)
@@ -712,7 +712,6 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
 
 
 def dev_external_eval(batches, transducer, vocab, paths, data_arguments, model_arguments, optim_arguments):
-    
     accuracy =  withheld_data_eval("dev", batches, transducer, vocab, optim_arguments['beam-widths'],
                        paths['dev_output'], paths['dev_path'], data_arguments['sigm2017format'])
     # WRITE STATS TO FILE (NOT IN TEST EXTERNAL EVAL)
