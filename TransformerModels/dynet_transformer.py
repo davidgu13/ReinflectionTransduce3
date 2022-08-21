@@ -4,8 +4,8 @@ from codecs import open
 
 import dynet as dy
 
-from TransformerModels.transformer_classes import ParallelMultiHeadAttentionLayer, FeedForwardLayer, \
-    NormalizationLayer, SinusoidalPositionalEncoder, LinearLayer, MaskBase
+from TransformerModels.transformer_classes import FeedForwardLayer, LinearLayer, MaskBase, NormalizationLayer, \
+    ParallelMultiHeadAttentionLayer, SinusoidalPositionalEncoder
 
 
 class EncoderLayer:

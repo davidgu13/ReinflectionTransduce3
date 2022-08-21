@@ -66,19 +66,18 @@ class StackBiRNN(object):
 
 class Encoder(object):
     def __init__(self, frnn, brnn):
-        self.frnn = frnn
-        self.brnn = brnn
+        self.forward_rnn = frnn
+        self.backward_rnn = brnn
 
     def transduce(self, embs, extras=None):
-        fs = self.frnn.initial_state()
-        bs = self.brnn.initial_state()
-        fs_states = fs.add_inputs(embs)  # 1, 2, 3, 4
-        bs_states = reversed(bs.add_inputs(reversed(embs)))  # 1, 2, 3, 4
-        self.s = list(reversed(list(zip(fs_states, bs_states, extras))))  # 4, 3, 2, 1
+        fs = self.forward_rnn.initial_state()
+        bs = self.backward_rnn.initial_state()
+        forward_states = fs.add_inputs(embs)  # 1, 2, 3, 4
+        backward_states = reversed(bs.add_inputs(reversed(embs)))  # 1, 2, 3, 4
+        self.s = list(reversed(list(zip(forward_states, backward_states, extras))))  # 4, 3, 2, 1
         # special treatment for the final element
         final_s = self.s[0]
-        self.final_embedding = dy.concatenate([final_s[0].output(),
-                                               final_s[1].output()])
+        self.final_embedding = dy.concatenate([final_s[0].output(), final_s[1].output()])
         self.final_extra = final_s[2]
 
     def embedding(self, extra=False):
@@ -99,7 +98,8 @@ class Encoder(object):
         return len(self.s)
 
     def copy(self):
-        encoder = Encoder(self.frnn, self.brnn)
+        # Not used in the basic Transducer
+        encoder = Encoder(self.forward_rnn, self.backward_rnn)
         encoder.s = list(self.s)  # copy
         encoder.final_embedding = self.final_embedding
         encoder.final_extra = self.final_extra

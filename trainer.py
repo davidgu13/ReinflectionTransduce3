@@ -14,8 +14,7 @@ from defaults import SANITY_SIZE
 from typing import Callable
 
 OPTIMIZERS = {'ADAM'    : #dy.AdamTrainer,
-                          lambda m: dy.AdamTrainer(m, alpha=0.0005,
-                                                   beta_1=0.9, beta_2=0.999, eps=1e-8),
+                          lambda model: dy.AdamTrainer(model, alpha=0.0005, beta_1=0.9, beta_2=0.999, eps=1e-8),
               'MOMENTUM': dy.MomentumSGDTrainer,
               'SGD'     : dy.SimpleSGDTrainer,
               'ADAGRAD' : dy.AdagradTrainer,
@@ -26,7 +25,7 @@ def vote(outputs):
     outputs = [output for output in outputs if output]
     return Counter(outputs).most_common()[0][0]
 
-
+# region eval_methods
 def pcfp_internal_eval(batches, transducer, vocab,
                   previous_predicted_actions,
                   check_condition=False, name='test'):
@@ -103,7 +102,7 @@ def internal_eval(batches, transducer, vocab,
             if prediction in vocab.word and vocab.word.w2i[prediction] == sample.word:
                 correct_prediction = True
                 number_correct += 1
-            
+
             if check_condition:
                 # display prediction for this sample if it differs the prediction
                 # of the previous epoch or its an error
@@ -203,6 +202,7 @@ def internal_eval_beam(batches, transducer, vocab,
     accuracy = number_correct / i
     print('\t...finished in {:.3f} sec'.format(time.time() - then))
     return accuracy, total_loss, predictions, pred_acts
+# endregion eval_methods
 
 class TrainingSession(object):
     def __init__(self, model, transducer, vocab,

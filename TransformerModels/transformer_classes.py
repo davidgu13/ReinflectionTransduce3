@@ -1,7 +1,7 @@
 # Basic classes, such as MultiHeadAttention
-from dynet import inputTensor, reshape, rectify, dropout_dim, affine_transform, inputVector, concatenate_to_batch, \
-    concatenate_cols, concatenate, pick_range, pick_batch_elems, transpose, softmax, cmult, layer_norm
 import numpy as np
+from dynet import affine_transform, cmult, concatenate, concatenate_cols, concatenate_to_batch, dropout_dim, \
+    inputTensor, inputVector, layer_norm, pick_batch_elems, pick_range, rectify, reshape, softmax, transpose
 
 
 def make_time_distributed(x):
@@ -195,10 +195,11 @@ class ParallelMultiHeadAttentionLayer(object):
     """
 
     def __init__(self, model, dim, nheads, use_bias=False, apply_future_blinding=False, name=''):
-        self._l_Q = LinearLayer(model, dim, dim, use_bias, name=name + '.attn.linear-query')
-        self._l_K = LinearLayer(model, dim, dim, use_bias, name=name + '.attn.linear-keys')
-        self._l_V = LinearLayer(model, dim, dim, use_bias, name=name + '.attn.linear-values')
-        self._l_O = LinearLayer(model, dim, dim, use_bias, name=name + '.attn.linear-final')
+        self._l_Q = LinearLayer(model, dim, dim, use_bias, name=f'{name}.attn.linear-query')
+        self._l_K = LinearLayer(model, dim, dim, use_bias, name=f'{name}.attn.linear-keys')
+        self._l_V = LinearLayer(model, dim, dim, use_bias, name=f'{name}.attn.linear-values')
+
+        self._l_O = LinearLayer(model, dim, dim, use_bias, name=f'{name}.attn.linear-final')
         self._att_scale = 1.0 / np.sqrt(dim / nheads)
         self.dim = dim
         self.nheads = nheads
@@ -263,14 +264,14 @@ class MultiHeadAttentionLayer(object):
         self._v_l_V = []
         for i in range(nheads):
             self._v_l_Q.append(
-                LinearLayer(model, dim, dim / nheads, use_bias, name=name + '.attn.h' + str(i) + '.linear-query'))
+                LinearLayer(model, dim, dim / nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-query'))
             self._v_l_K.append(
-                LinearLayer(model, dim, dim / nheads, use_bias, name=name + '.attn.h' + str(i) + '.linear-keys'))
+                LinearLayer(model, dim, dim / nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-keys'))
             self._v_l_V.append(
-                LinearLayer(model, dim, dim / nheads, use_bias, name=name + '.attn.h' + str(i) + '.linear-values'))
+                LinearLayer(model, dim, dim / nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-values'))
 
         # final layer
-        self._l_O = LinearLayer(model, dim, dim, use_bias, name=name + '.attn.linear-final')
+        self._l_O = LinearLayer(model, dim, dim, use_bias, name=f'{name}.attn.linear-final')
 
         self._att_scale = 1.0 / np.sqrt(dim / nheads)
         self.dim = dim

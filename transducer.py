@@ -1,11 +1,11 @@
 import dynet as dy
+from _dynet import Expression
 import numpy as np
-
 from defaults import COPY, DELETE, END_WORD, MAX_ACTION_SEQ_LEN, UNK
 from stack_lstms import Encoder
 
 NONLINS = {'tanh': dy.tanh, 'ReLU': dy.rectify}
-
+def get_Expression_shape(exp: Expression): return exp.npvalue().shape
 
 class Transducer(object):
     def __init__(self, model, vocab, char_dim=100, action_dim=100, feat_dim=20,
@@ -22,7 +22,7 @@ class Transducer(object):
         self.DEC_HIDDEN_DIM = dec_hidden_dim
         self.DEC_LAYERS     = dec_layers
         self.LSTM           = dy.VanillaLSTMBuilder if vanilla_lstm else dy.CoupledLSTMBuilder # usually the latter is chosen
-        self.MLP_DIM        = mlp_dim
+        self.MLP_DIM        = mlp_dim # usually 0
         self.NONLIN         = NONLINS.get(nonlin, 'ReLU')
         self.LUCKY_W        = lucky_w
         self.double_feats   = double_feats
@@ -231,6 +231,12 @@ class Transducer(object):
                 reg.append(dy.l2_norm(self.ACT_LOOKUP.expr()))
         return 0.5 * dy.esum(reg)
 
+    def get_valid_actions(self, encoder: Encoder):
+        valid_actions = [COPY, DELETE] if len(encoder) > 1 else [END_WORD]
+        valid_actions += self.INSERTS
+        return valid_actions
+
+
     def transduce(self, lemma, in_feats, out_feats, oracle_actions=None, external_cg=True, sampling=False, unk_avg=True):
         # Returns an expression of the loss for the sequence of actions.
         # (that is, the oracle_actions if present or the predicted sequence otherwise)
@@ -245,11 +251,10 @@ class Transducer(object):
             oracle_actions.pop()  # COPY of BEGIN_WORD_CHAR  
 
         # vectorize lemma
-        lemma_enc = self._build_lemma(lemma, unk_avg, is_training=bool(oracle_actions))
+        lemma_enc = self._build_lemma(lemma, unk_avg, is_training=bool(oracle_actions)) # List[lookupExpression], each of size CHAR_DIM
 
         # vectorize features
-        in_features = self._build_features(*in_feats)
-        out_features = self._build_features(*out_feats)
+        in_features, out_features = self._build_features(*in_feats), self._build_features(*out_feats)
 
         # add encoder and decoder to computation graph
         encoder = Encoder(self.fbuffRNN, self.bbuffRNN)
@@ -270,24 +275,11 @@ class Transducer(object):
         encoder.transduce(lemma_enc, lemma)
 
         encoder.pop()  # BEGIN_WORD_CHAR
-        action_history = [COPY]
-        word = []
-        losses = []
-        count = 0
+        action_history, word, losses, count = [COPY], [], [], 0
 
         if show_oracle_actions:
-            print()
-            print(''.join([self.vocab.act.i2w[a] for a in oracle_actions]))
-            print(''.join([self.vocab.char.i2w[a] for a in lemma]))
-
-        def _valid_actions(encoder):
-            valid_actions = []
-            if len(encoder) > 1:
-                valid_actions += [COPY, DELETE]
-            else:
-                valid_actions += [END_WORD]
-            valid_actions += self.INSERTS
-            return valid_actions
+            print(f"\n{''.join([self.vocab.act.i2w[a] for a in oracle_actions])}"
+                  f"{''.join([self.vocab.char.i2w[a] for a in lemma])}")
 
         while len(action_history) <= MAX_ACTION_SEQ_LEN:
 
@@ -302,21 +294,21 @@ class Transducer(object):
 
             # compute probability of each of the actions and choose an action
             # either from the oracle or if there is no oracle, based on the model
-            valid_actions = _valid_actions(encoder)
+            valid_actions = self.get_valid_actions(encoder)
 
             # decoder
-            decoder_input = dy.concatenate([encoder.embedding(),
-                                            in_features,
-                                            out_features,
-                                            self.ACT_LOOKUP[action_history[-1]]])
+            decoder_input = dy.concatenate([encoder.embedding(), # e.g. shape = 400
+                                            in_features, # e.g. shape = 480
+                                            out_features, # e.g. shape = 480
+                                            self.ACT_LOOKUP[action_history[-1]]]) # e.g. shape = 100, total = 1480
             decoder = decoder.add_input(decoder_input)
 
             # classifier
-            if self.double_feats:
+            if self.double_feats: # usually false
                 classifier_input = dy.concatenate([decoder.output(), in_features, out_features])
             else:
                 classifier_input = decoder.output()
-            if self.MLP_DIM:
+            if self.MLP_DIM: # usually 0 => false
                 h = self.NONLIN(W_s2h * classifier_input + b_s2h)
             else:
                 h = classifier_input
@@ -325,7 +317,7 @@ class Transducer(object):
             # print "MADE IT UNTIL HERE, oracle_actions = {}\n".format(oracle_actions)
 
             # get action (argmax, sampling, or use oracle actions)
-            if oracle_actions is None:
+            if oracle_actions is None: # usually not None
                 if sampling:
                     dist = np.exp(log_probs.npvalue())  # **0.9
                     dist = dist / np.sum(dist)
@@ -372,14 +364,6 @@ class Transducer(object):
     def beam_search_decode(self, lemma, in_feats, out_feats, external_cg=True, unk_avg=True, beam_width=4):
         # Returns an expression of the loss for the sequence of actions.
         # (that is, the oracle_actions if present or the predicted sequence otherwise)
-        def _valid_actions(encoder):
-            valid_actions = []
-            if len(encoder) > 1:
-                valid_actions += [COPY, DELETE]
-            else:
-                valid_actions += [END_WORD]
-            valid_actions += self.INSERTS
-            return valid_actions
 
         if not external_cg:
             dy.renew_cg()
@@ -439,7 +423,7 @@ class Transducer(object):
             #print 'Beam length: ', beam_length
             for decoder, encoder, prev_actions, log_p, log_p_expr, word in beam:
                 #print 'Expansion: ', action2string(prev_actions, self.vocab), log_p, ''.join(word)
-                valid_actions = _valid_actions(encoder)
+                valid_actions = self.get_valid_actions(encoder)
                 # decoder
                 decoder_input = dy.concatenate([encoder.embedding(),
                                                 in_features,
