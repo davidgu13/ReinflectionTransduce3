@@ -12,8 +12,8 @@ def joinit(iterable: Iterable, delimiter):
         yield delimiter
         yield x
 
-def tuple_of_phon_tuples2phon_sequence(tupleOfTuples: Iterable[Tuple[str]]) -> List[str]:
-    return list(chain(*joinit(tupleOfTuples, ('$',) )))
+def tuple_of_phon_tuples2phon_sequence(tupleOfTuples: Iterable[Tuple[str]], use_separator=True) -> List[str]:
+    return list(chain(*(joinit(tupleOfTuples, ('$',) ) if use_separator else tupleOfTuples)))
 
 def normalize_dollars(sequence: List[str], verbose = False) -> List[str]:
     """
@@ -62,11 +62,12 @@ class LanguageSetup:
     def get_lang_alphabet(self): return self._alphabet
     def get_lang_phonemes(self): return self._phonemes
 
-    def word2phonemes(self, word: str, mode: str) -> Union[List[List[int]], List[str]]:
+    def word2phonemes(self, word: str, mode: str, use_separator=True) -> Union[List[List[int]], List[str]]:
         """
         Convert a word (sequence of graphemes) to a list of phoneme tuples.
         :param word: word
         :param mode: can be either 'features' or 'phonemes' (see more above).
+        :param use_separator: if True, separating between the features tuples with '$'.
         :return: ((,,), (,,), (,,), ...) or list(*IPA symbols*)
         """
         assert mode in {'features', 'phonemes'}, f"Mode {mode} is invalid"
@@ -89,7 +90,7 @@ class LanguageSetup:
                 if self.phon_use_attention:
                     feats.append(p)
                 features.append(tuple(feats))
-            features = tuple_of_phon_tuples2phon_sequence(features)
+            features = tuple_of_phon_tuples2phon_sequence(features, use_separator=use_separator)
             return features
 
     def _phonemes2word(self, phonemes: Union[List[str], Tuple[str], List[List[str]]], mode: str) -> str:
