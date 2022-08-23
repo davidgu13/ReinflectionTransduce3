@@ -28,10 +28,9 @@ class BaseDataSet(object):
         # filename (str):   tab-separated file containing morphology reinflection data:
         #                   lemma word feat1;feat2;feat3...
 
-        kwargs['use_phonology'] = kwargs.get('language') is not None
         if kwargs['use_phonology']:
             language = kwargs['language']
-            phon_use_attention = False
+            phon_use_attention = kwargs['self_attention']
             phonology_converter = LanguageSetup.create_phonology_converter(language, phon_use_attention)
         else:
             phonology_converter = None

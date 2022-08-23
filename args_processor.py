@@ -111,6 +111,8 @@ def process_data_arguments(arguments):
 
     return {
         'language'      : language,
+        'use_phonology' : arguments['--use-phonology'],
+        'self_attention': arguments['--self-attn'] if arguments['--use-phonology'] else False,
         'dataset'       : dset,
         'aligner'       : aligner,
         'sigm2017format': arguments['--sigm2017format'],
@@ -159,7 +161,8 @@ def process_model_arguments(arguments):
         'pos_emb'         : arguments['--pos-emb'],
         'avm_feat_format' : arguments['--avm-feat-format'],
         'lucky_w'         : int(arguments.get('--lucky-w', 55)),
-        'param_tying'     : arguments['--param-tying']
+        'param_tying'     : arguments['--param-tying'],
+        'self-attention'  : arguments['--self-attn'] if arguments['--use-phonology'] else False
     }
     
 
