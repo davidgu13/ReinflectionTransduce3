@@ -66,7 +66,9 @@ class BaseDataSample(object):
             word = vocab.word[output_str]  # .replace(' ','')]
             word_phonological = None
         else:
-            input_features = phonology_converter.word2phonemes(input_str, 'features')
+            input_features = phonology_converter.word2phonemes(input_str, 'features', use_separator = not self_attn) # need to get this var here
+            input_phonemes = phonology_converter.word2phonemes(input_str, 'phonemes') if self_attn else None
+            # compute the indices' representation of input_phonemes, and use it later in the encoding if self_attn
             output_features = tuple(phonology_converter.word2phonemes(output_str, 'features'))
 
             # encode input characters

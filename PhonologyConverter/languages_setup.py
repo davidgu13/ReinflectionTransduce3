@@ -67,7 +67,7 @@ class LanguageSetup:
         Convert a word (sequence of graphemes) to a list of phoneme tuples.
         :param word: word
         :param mode: can be either 'features' or 'phonemes' (see more above).
-        :param use_separator: if True, separating between the features tuples with '$'.
+        :param use_separator: if mode == 'features', then if True, separating between the features tuples with '$'.
         :return: ((,,), (,,), (,,), ...) or list(*IPA symbols*)
         """
         assert mode in {'features', 'phonemes'}, f"Mode {mode} is invalid"
