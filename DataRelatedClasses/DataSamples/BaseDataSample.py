@@ -71,14 +71,19 @@ class BaseDataSample(object):
             input_phonemes = None
         else:
             input_features = phonology_converter.word2phonemes(input_str, 'features', use_separator = not use_self_attention)
-            input_phonemes = phonology_converter.word2phonemes(input_str, 'phonemes') if use_self_attention else None
-            # compute the indices' representation of input_phonemes, and use it later in the encoding if use_self_attention
-            output_features = tuple(phonology_converter.word2phonemes(output_str, 'features'))
-
             # encode input characters
             input = [vocab.char[c] for c in input_features]  # .split()]
+
             if use_self_attention:
+                # compute the indices' representation of input_phonemes, and use it later in the encoding if use_self_attention
+                input_phonemes = phonology_converter.word2phonemes(input_str, 'phonemes')
                 input_phonemes = [vocab.char[c] for c in input_phonemes]
+                # we need the phonemic representation of the output, without features
+                output_features = tuple(phonology_converter.word2phonemes(output_str, 'phonemes'))
+            else:
+                input_phonemes = None
+                output_features = tuple(phonology_converter.word2phonemes(output_str, 'features'))
+
             # encode word
             word = vocab.word[output_features]  # .replace(' ','')]
             word_phonological = [vocab.char[c] for c in output_features]
@@ -94,6 +99,8 @@ class BaseDataSample(object):
         # wrap encoded input with (encoded) boundary tags
         if tag_wraps == 'both':
             input = [BEGIN_WORD] + input + [END_WORD]
+            if use_self_attention:
+                input_phonemes = [BEGIN_WORD] + input_phonemes + [END_WORD]
         elif tag_wraps == 'close':
             input = input + [END_WORD]
 
