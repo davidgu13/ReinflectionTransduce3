@@ -260,15 +260,15 @@ class Transducer(object):
         lemma_enc = self._build_lemma(lemma, unk_avg, is_training=bool(oracle_actions)) # List[lookupExpression], each of size CHAR_DIM
         # vectorize the phonemic representation, if needed
         if phonemes is None:
-            lemma_phonemes_enc = None
+            phonemes_enc = None
         else:
-            lemma_phonemes_enc = self._build_lemma(phonemes, unk_avg, is_training=bool(oracle_actions)) # List[lookupExpression], each of size CHAR_DIM
+            phonemes_enc = self._build_lemma(phonemes, unk_avg, is_training=bool(oracle_actions)) # List[lookupExpression], each of size CHAR_DIM
 
         # vectorize features
         in_features, out_features = self._build_features(*in_feats), self._build_features(*out_feats)
 
         # add encoder and decoder to computation graph
-        encoder = Encoder(self.fbuffRNN, self.bbuffRNN, self.self_attention)
+        encoder = Encoder(self.fbuffRNN, self.bbuffRNN, self.self_attention, self.kwargs['phonology_converter'].max_phoneme_size)
         decoder = self.wordRNN.initial_state()
 
         # add classifier to computation graph
@@ -283,7 +283,7 @@ class Transducer(object):
         # encoder is a stack which pops lemma characters and their
         # representations from the top. Thus, to get lemma characters
         # in the right order, the lemma has to be reversed.
-        encoder.transduce(lemma_enc, lemma, lemma_phonemes_enc)
+        encoder.transduce(lemma_enc, lemma, phonemes_enc, phonemes)
 
         encoder.pop()  # BEGIN_WORD_CHAR
         action_history, word, losses, count = [COPY], [], [], 0

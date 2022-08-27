@@ -1,4 +1,7 @@
+from typing import List
+
 import dynet as dy
+from _dynet import Expression
 
 from TransformerModels.transformer_classes import MultiHeadAttentionLayer
 
@@ -66,19 +69,23 @@ class StackBiRNN(object):
 
 
 class Encoder(object):
-    def __init__(self, frnn, brnn, self_attention_layer: MultiHeadAttentionLayer = None):
+    def __init__(self, frnn, brnn, self_attention_layer: MultiHeadAttentionLayer = None, max_phoneme_size = None):
         self.forward_rnn = frnn
         self.backward_rnn = brnn
         self.self_attention_layer = self_attention_layer
+        self.max_phoneme_size = max_phoneme_size # mostly 3 or 4
+
+        self.s = None
 
     def apply_self_attention(self, embeddings, phonemes_embeddings):
-        sos_and_eos_embs = [embeddings[0], embeddings[-1]]
-        embeddings = embeddings[1:-1]
+        sos_and_eos_embs = [embeddings[0], embeddings[-1]] # same as [phonemes_embeddings[0], phonemes_embeddings[-1]]
+        embeddings, phonemes_embeddings = embeddings[1:-1], phonemes_embeddings[1:-1] # ignore sos and eos
         assert (len(embeddings) / len(phonemes_embeddings)).is_integer()
 
         attended_phonemes = []
         for i, p_emb in enumerate(phonemes_embeddings):
-            features_embs = dy.concatenate(embeddings[3 * i: 3 * i + 3], d=1)
+            features_embs = embeddings[self.max_phoneme_size * i: self.max_phoneme_size * (i + 1)]
+            features_embs = dy.concatenate(features_embs, d=1)
             attended_phoneme = self.self_attention_layer(p_emb, features_embs, None)
             attended_phonemes.append(attended_phoneme)
 
@@ -87,17 +94,30 @@ class Encoder(object):
 
         return attended_phonemes
 
-    def transduce(self, embeddings, extras=None, phonemes=None):
-        assert bool(phonemes) == bool(self.self_attention_layer)
+    def transduce(self, embeddings: List[Expression], extras: List[int] = None, phonemes_embeddings=None,
+                  phonemes_extras: List[int] = None):
+        """
+        :param embeddings: a list of embedding vectors (of type Expression)
+        :param extras: a list of the lemma vocab.char values, or None
+        :param phonemes_embeddings: a list of the lemma's phonemes characters (of type Expression), or None
+        :param phonemes_extras: a list of the lemma's phonemes vocab.char values, or None
+        """
+        assert bool(phonemes_extras) == bool(phonemes_embeddings) == bool(self.self_attention_layer)
 
-        if self.self_attention_layer:
-            embeddings = self.apply_self_attention(embeddings, phonemes) # now embeddings.shape == (m, CHAR_DIM), where m = len(w2p(lemma, 'phonemes'))
+        if phonemes_extras:
+            embeddings = self.apply_self_attention(embeddings, phonemes_embeddings)
+            # now embeddings.shape == (m, CHAR_DIM), where m = len(w2p(lemma, 'phonemes'))
 
         fs = self.forward_rnn.initial_state()
         bs = self.backward_rnn.initial_state()
         forward_states = fs.add_inputs(embeddings)  # 1, 2, 3, 4
         backward_states = reversed(bs.add_inputs(reversed(embeddings)))  # 1, 2, 3, 4
-        self.s = list(reversed(list(zip(forward_states, backward_states, extras))))  # 4, 3, 2, 1
+
+        if phonemes_extras:
+            self.s = list(reversed(list(zip(forward_states, backward_states, phonemes_extras))))  # 4, 3, 2, 1
+        else:
+            self.s = list(reversed(list(zip(forward_states, backward_states, extras))))  # 4, 3, 2, 1
+
         # special treatment for the final element
         final_s = self.s[0]
         self.final_embedding = dy.concatenate([final_s[0].output(), final_s[1].output()])
