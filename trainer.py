@@ -93,7 +93,7 @@ def internal_eval(batches, transducer, vocab,
         for sample in batch:
             in_feats = sample.in_pos, sample.in_feats
             out_feats = sample.out_pos, sample.out_feats
-            loss, prediction, predicted_actions = transducer.transduce(sample.lemma, in_feats, out_feats, external_cg=True)
+            loss, prediction, predicted_actions = transducer.transduce(sample.lemma, in_feats, out_feats, external_cg=True, phonemes=sample.phonemes)
             predictions.append(prediction)
             pred_acts.append(predicted_actions)
             batch_loss.extend(loss)

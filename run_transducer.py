@@ -113,6 +113,7 @@ if __name__ == "__main__":
     print('Loading data... Dataset: {}'.format(data_arguments['dataset']))
     train_data = data_arguments['dataset'].from_file(paths['train_path'], **data_arguments)
     phonology_converter = train_data.phonology_converter
+    model_arguments['phonology_converter'] = phonology_converter
     VOCAB = train_data.vocab
     VOCAB.train_cutoff()  # knows that entities before come from train set
     batch_size = optim_arguments['decbatch-size']
@@ -235,7 +236,8 @@ if __name__ == "__main__":
         # Reevaluate at graphemes level: Read the test predictions file and evaluate the features predictions.
         # Then, write in f.stats all the 4 measures.
         test_predictions_file = paths['test_output']('greedy') + 'predictions'
-        measures = evaluate_features_predictions(test_predictions_file, phonology_converter)
+        measures = evaluate_features_predictions(test_predictions_file, phonology_converter,
+                                                 output_mode='phonemes' if data_arguments['self_attention'] else 'features')
 
         assert measures[1] == test_accuracy  # the return of test_external_eval equals to the (features-level) predictions' evaluation
         write_generalized_measures(paths['stats_file_path'], measures)
