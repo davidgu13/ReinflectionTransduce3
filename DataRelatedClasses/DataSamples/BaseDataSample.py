@@ -17,8 +17,8 @@ def assert_inputs_are_valid(input_str, output_str, in_feats_str, out_feats_str):
 
 class BaseDataSample(object):
     # data sample with encoded features
-    def __init__(self, lemma, lemma_str, in_pos, in_feats, in_feat_str, word,
-                 word_str, word_phonological, out_pos, out_feats, out_feat_str, tag_wraps, vocab):
+    def __init__(self, lemma, lemma_str, in_pos, in_feats, in_feat_str, word, word_str, word_phonological,
+                 out_pos, out_feats, out_feat_str, tag_wraps, vocab, input_phonemes=None):
         self.vocab = vocab  # vocab of unicode strings
 
         self.lemma = lemma  # list of encoded lemma characters
@@ -43,12 +43,15 @@ class BaseDataSample(object):
 
         self.tag_wraps = tag_wraps  # were lemma / word wrapped with word boundary tags '<' and '>'?
 
+        self.phonemes = input_phonemes
+
     def __repr__(self):
         return f'Input: {self.lemma_str},Features: {self.in_feat_repr}, Output: {self.word_str}, ' \
                f'Features: {self.out_feat_repr}, Wraps: {self.tag_wraps}'
 
     @classmethod
-    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row: List[str], sigm2017format=True, phonology_converter:LanguageSetup=None):
+    def from_row(cls, vocab: VocabBox, tag_wraps: str, verbose, row: List[str], sigm2017format=True,
+                 phonology_converter:LanguageSetup=None, use_self_attention=False):
         if sigm2017format:
             input_str, in_feats_str, output_str, out_feats_str = row
             input_str = remove_pipe(input_str)
@@ -65,14 +68,17 @@ class BaseDataSample(object):
             # encode word
             word = vocab.word[output_str]  # .replace(' ','')]
             word_phonological = None
+            input_phonemes = None
         else:
-            input_features = phonology_converter.word2phonemes(input_str, 'features', use_separator = not self_attn) # need to get this var here
-            input_phonemes = phonology_converter.word2phonemes(input_str, 'phonemes') if self_attn else None
-            # compute the indices' representation of input_phonemes, and use it later in the encoding if self_attn
+            input_features = phonology_converter.word2phonemes(input_str, 'features', use_separator = not use_self_attention)
+            input_phonemes = phonology_converter.word2phonemes(input_str, 'phonemes') if use_self_attention else None
+            # compute the indices' representation of input_phonemes, and use it later in the encoding if use_self_attention
             output_features = tuple(phonology_converter.word2phonemes(output_str, 'features'))
 
             # encode input characters
             input = [vocab.char[c] for c in input_features]  # .split()]
+            if use_self_attention:
+                input_phonemes = [vocab.char[c] for c in input_phonemes]
             # encode word
             word = vocab.word[output_features]  # .replace(' ','')]
             word_phonological = [vocab.char[c] for c in output_features]
@@ -97,5 +103,5 @@ class BaseDataSample(object):
             print(f'POS & features from {input_str}, {output_str}: {in_pos}, {in_feats} --> {out_pos}, {out_feats}')
             print(f'input encoding: {input}')
 
-        return cls(input, input_str, in_pos, in_feats, in_feats_str, word, output_str, word_phonological, out_pos, out_feats,
-                   out_feats_str, tag_wraps, vocab)
+        return cls(input, input_str, in_pos, in_feats, in_feats_str, word, output_str, word_phonological,
+                   out_pos, out_feats, out_feats_str, tag_wraps, vocab, input_phonemes=input_phonemes)

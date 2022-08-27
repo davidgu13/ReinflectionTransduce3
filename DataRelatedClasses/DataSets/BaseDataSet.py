@@ -30,8 +30,7 @@ class BaseDataSet(object):
 
         if kwargs['use_phonology']:
             language = kwargs['language']
-            phon_use_attention = kwargs['self_attention']
-            phonology_converter = LanguageSetup.create_phonology_converter(language, phon_use_attention)
+            phonology_converter = LanguageSetup.create_phonology_converter(language, False) # the True option isn't needed
         else:
             phonology_converter = None
         kwargs['phonology_converter'] = phonology_converter
@@ -58,8 +57,8 @@ class BaseDataSet(object):
         with codecs.open(filename, encoding=encoding) as f:
             for row in f:
                 split_row = row.strip().split(delimiter)
-                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row,
-                         sigm2017format=kwargs['sigm2017format'], phonology_converter=phonology_converter)
+                sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row, sigm2017format=kwargs['sigm2017format'],
+                          phonology_converter=phonology_converter, use_self_attention=kwargs['self_attention'])
                 datasamples.append(sample)
 
         if hallname:
@@ -77,7 +76,9 @@ class BaseDataSet(object):
                     datasamples.append(sample)
             print(f'hallucinated data added. training expanded from {old_len} to {len(datasamples)} examples')
 
-        from PhonologyConverter.g2p_config import feature2idx
-        kwargs['space_character'] = vocab.char.w2i.get(str(feature2idx[' ']))
+        if kwargs['use_phonology']:
+            from PhonologyConverter.g2p_config import feature2idx
+            kwargs['space_character'] = vocab.char.w2i.get(str(feature2idx[' ']))
+
         return cls(filename=filename, samples=datasamples, vocab=vocab,
                    training_data=training_data, tag_wraps=tag_wraps, verbose=verbose, **kwargs)

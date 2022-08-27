@@ -209,22 +209,24 @@ class ParallelMultiHeadAttentionLayer(object):
         """
             Calculate the attention weights and apply them to the keys using the dot-product attention type
         """
-        lQ = query.dim()[0][1]
-        Q_batch = query.dim()[1]
-        lK = keys.dim()[0][1]
-        K_batch = query.dim()[1]
+        lQ, Q_batch = query.dim()[0][1], query.dim()[1]
+        lK, K_batch = keys.dim()[0][1], query.dim()[1]
+
         i_Q = self._l_Q(query)  # ((dim,lQ), batch)
         i_K = self._l_K(keys)  # ((dim,lK), batch)
         i_V = self._l_V(keys)  # ((dim,lK), batch)
+
         # we have ((dim,lq), batch)
         # we want ((dim/nheads, lq) batch*nheads)
         # so:
         # transpose = (lq,dim), batch)
         # reshape = (lq, dim/nheads), batch*nheads)
         # transpose= (dim/nheads, lq), batch*nheads)
+
         i_batch_Q = transpose(reshape(transpose(i_Q), (lQ, self.dim / self.nheads), self.nheads * Q_batch))
         i_batch_K = transpose(reshape(transpose(i_K), (lK, self.dim / self.nheads), self.nheads * K_batch))
         i_batch_V = transpose(reshape(transpose(i_V), (lK, self.dim / self.nheads), self.nheads * K_batch))
+
         # calculate alphas and apply scale
         i_batch_alphas = (transpose(i_batch_K) * i_batch_Q) * self._att_scale
         # apply source mask - give a very low score to items not in keys
@@ -263,12 +265,9 @@ class MultiHeadAttentionLayer(object):
         self._v_l_K = []
         self._v_l_V = []
         for i in range(nheads):
-            self._v_l_Q.append(
-                LinearLayer(model, dim, dim / nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-query'))
-            self._v_l_K.append(
-                LinearLayer(model, dim, dim / nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-keys'))
-            self._v_l_V.append(
-                LinearLayer(model, dim, dim / nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-values'))
+            self._v_l_Q.append(LinearLayer(model, dim, dim // nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-query'))
+            self._v_l_K.append(LinearLayer(model, dim, dim // nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-keys'))
+            self._v_l_V.append(LinearLayer(model, dim, dim // nheads, use_bias, name=f'{name}.attn.h{str(i)}.linear-values'))
 
         # final layer
         self._l_O = LinearLayer(model, dim, dim, use_bias, name=f'{name}.attn.linear-final')
@@ -281,6 +280,7 @@ class MultiHeadAttentionLayer(object):
     def __call__(self, query, keys, i_mask, dropout=0.0):
         """
             Calculate the attention weights and apply them to the keys using the dot-product attention type
+            query: a list of len seq_len, each item is an Expression of shape (CHAR_DIM, )
         """
 
         v_atts = []

@@ -9,9 +9,10 @@ import progressbar
 
 import util
 from DataRelatedClasses.DataSets.BaseDataSet import BaseDataSet
+from DataRelatedClasses.DataSamples.AlignedDataSample import AlignedDataSample
 from DataRelatedClasses.utils import action2string
 from defaults import SANITY_SIZE
-from typing import Callable
+from typing import Callable, List
 
 OPTIMIZERS = {'ADAM'    : #dy.AdamTrainer,
                           lambda model: dy.AdamTrainer(model, alpha=0.0005, beta_1=0.9, beta_2=0.999, eps=1e-8),
@@ -299,7 +300,7 @@ class TrainingSession(object):
         self.model.save(kwargs['tmp_model_path'])
         print('saved initial model to {}'.format(kwargs['tmp_model_path']))
 
-        def MLE_batch_update(batch, *args):
+        def MLE_batch_update(batch: List[AlignedDataSample], *args):
             # How to update model parameters from
             # a batch of training samples with MLE?
             dy.renew_cg()
@@ -307,7 +308,7 @@ class TrainingSession(object):
             for sample in batch:
                 in_feats = sample.in_pos, sample.in_feats
                 out_feats = sample.out_pos, sample.out_feats
-                loss, _, _ = self.transducer.transduce(sample.lemma, in_feats, out_feats, sample.actions, external_cg=True)
+                loss, _, _ = self.transducer.transduce(sample.lemma, in_feats, out_feats, sample.actions, external_cg=True, phonemes=sample.phonemes)
                 batch_loss.extend(loss)
             batch_loss = -dy.average(batch_loss)
             if l2: batch_loss += l2 * self.transducer.l2_norm(with_embeddings=False)

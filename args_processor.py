@@ -162,7 +162,8 @@ def process_model_arguments(arguments):
         'avm_feat_format' : arguments['--avm-feat-format'],
         'lucky_w'         : int(arguments.get('--lucky-w', 55)),
         'param_tying'     : arguments['--param-tying'],
-        'self-attention'  : arguments['--self-attn'] if arguments['--use-phonology'] else False
+        'use_phonology' : arguments['--use-phonology'],
+        'self_attention'  : arguments['--self-attn'] if arguments['--use-phonology'] else False
     }
     
 
