@@ -1,5 +1,6 @@
 import dynet as dy
 
+from TransformerModels.transformer_classes import MultiHeadAttentionLayer
 
 #############################################################
 # Stack RNNs and biRNNs
@@ -65,15 +66,37 @@ class StackBiRNN(object):
 
 
 class Encoder(object):
-    def __init__(self, frnn, brnn):
+    def __init__(self, frnn, brnn, self_attention_layer: MultiHeadAttentionLayer = None):
         self.forward_rnn = frnn
         self.backward_rnn = brnn
+        self.self_attention_layer = self_attention_layer
 
-    def transduce(self, embs, extras=None):
+    def apply_self_attention(self, embeddings, phonemes_embeddings):
+        sos_and_eos_embs = [embeddings[0], embeddings[-1]]
+        embeddings = embeddings[1:-1]
+        assert (len(embeddings) / len(phonemes_embeddings)).is_integer()
+
+        attended_phonemes = []
+        for i, p_emb in enumerate(phonemes_embeddings):
+            features_embs = dy.concatenate(embeddings[3 * i: 3 * i + 3], d=1)
+            attended_phoneme = self.self_attention_layer(p_emb, features_embs, None)
+            attended_phonemes.append(attended_phoneme)
+
+        assert len(attended_phonemes) == len(phonemes_embeddings)
+        attended_phonemes = [sos_and_eos_embs[0], *attended_phonemes, sos_and_eos_embs[1]]
+
+        return attended_phonemes
+
+    def transduce(self, embeddings, extras=None, phonemes=None):
+        assert bool(phonemes) == bool(self.self_attention_layer)
+
+        if self.self_attention_layer:
+            embeddings = self.apply_self_attention(embeddings, phonemes) # now embeddings.shape == (m, CHAR_DIM), where m = len(w2p(lemma, 'phonemes'))
+
         fs = self.forward_rnn.initial_state()
         bs = self.backward_rnn.initial_state()
-        forward_states = fs.add_inputs(embs)  # 1, 2, 3, 4
-        backward_states = reversed(bs.add_inputs(reversed(embs)))  # 1, 2, 3, 4
+        forward_states = fs.add_inputs(embeddings)  # 1, 2, 3, 4
+        backward_states = reversed(bs.add_inputs(reversed(embeddings)))  # 1, 2, 3, 4
         self.s = list(reversed(list(zip(forward_states, backward_states, extras))))  # 4, 3, 2, 1
         # special treatment for the final element
         final_s = self.s[0]

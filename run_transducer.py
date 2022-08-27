@@ -116,7 +116,6 @@ if __name__ == "__main__":
     VOCAB = train_data.vocab
     VOCAB.train_cutoff()  # knows that entities before come from train set
     batch_size = optim_arguments['decbatch-size']
-    model_arguments['use_phonology'] = phonology_converter is not None
 
     if paths['dev_path']:
         dev_data = data_arguments['dataset'].from_file(paths['dev_path'], vocab=VOCAB, **data_arguments)
@@ -231,12 +230,12 @@ if __name__ == "__main__":
     else:
         test_accuracy = -1
 
+    # TODO: re-add test evaluation for no phonology mode.
     if model_arguments['use_phonology'] and test_accuracy != -1:
         # Reevaluate at graphemes level: Read the test predictions file and evaluate the features predictions.
         # Then, write in f.stats all the 4 measures.
         test_predictions_file = paths['test_output']('greedy') + 'predictions'
         measures = evaluate_features_predictions(test_predictions_file, phonology_converter)
 
-        assert measures[
-                   1] == test_accuracy  # the return of test_external_eval equals to the (features-level) predictions' evaluation
+        assert measures[1] == test_accuracy  # the return of test_external_eval equals to the (features-level) predictions' evaluation
         write_generalized_measures(paths['stats_file_path'], measures)

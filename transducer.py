@@ -1,8 +1,10 @@
 import dynet as dy
 from _dynet import Expression
 import numpy as np
+
 from defaults import COPY, DELETE, END_WORD, MAX_ACTION_SEQ_LEN, UNK
 from stack_lstms import Encoder
+from TransformerModels.transformer_classes import MultiHeadAttentionLayer
 
 NONLINS = {'tanh': dy.tanh, 'ReLU': dy.rectify}
 def get_Expression_shape(exp: Expression): return exp.npvalue().shape
@@ -29,6 +31,7 @@ class Transducer(object):
         self.param_tying    = param_tying
         self.pos_emb        = pos_emb
         self.avm_feat_format = avm_feat_format
+        self.use_self_attention = kwargs['self_attention']
 
         self.vocab = vocab
 
@@ -101,6 +104,8 @@ class Transducer(object):
                 else:
                     self.FEAT_INPUT_DIM = (self.NUM_FEATS - 1) * self.FEAT_DIM  # -1 for UNK
                     print('Every feature-value pair is taken to be atomic.')
+
+        self.self_attention = MultiHeadAttentionLayer(model, self.CHAR_DIM, 2, True) if self.use_self_attention else None
 
         # BiLSTM encoding lemma
         self.fbuffRNN = self.LSTM(self.ENC_LAYERS, self.CHAR_DIM, self.ENC_HIDDEN_DIM, model)
@@ -237,9 +242,10 @@ class Transducer(object):
         return valid_actions
 
 
-    def transduce(self, lemma, in_feats, out_feats, oracle_actions=None, external_cg=True, sampling=False, unk_avg=True):
+    def transduce(self, lemma, in_feats, out_feats, oracle_actions=None, external_cg=True, sampling=False, unk_avg=True, phonemes=None):
         # Returns an expression of the loss for the sequence of actions.
         # (that is, the oracle_actions if present or the predicted sequence otherwise)
+        assert self.self_attention != (phonemes is None)
         show_oracle_actions = False
 
         if not external_cg:
@@ -252,12 +258,17 @@ class Transducer(object):
 
         # vectorize lemma
         lemma_enc = self._build_lemma(lemma, unk_avg, is_training=bool(oracle_actions)) # List[lookupExpression], each of size CHAR_DIM
+        # vectorize the phonemic representation, if needed
+        if phonemes is None:
+            lemma_phonemes_enc = None
+        else:
+            lemma_phonemes_enc = self._build_lemma(phonemes, unk_avg, is_training=bool(oracle_actions)) # List[lookupExpression], each of size CHAR_DIM
 
         # vectorize features
         in_features, out_features = self._build_features(*in_feats), self._build_features(*out_feats)
 
         # add encoder and decoder to computation graph
-        encoder = Encoder(self.fbuffRNN, self.bbuffRNN)
+        encoder = Encoder(self.fbuffRNN, self.bbuffRNN, self.self_attention)
         decoder = self.wordRNN.initial_state()
 
         # add classifier to computation graph
@@ -272,7 +283,7 @@ class Transducer(object):
         # encoder is a stack which pops lemma characters and their
         # representations from the top. Thus, to get lemma characters
         # in the right order, the lemma has to be reversed.
-        encoder.transduce(lemma_enc, lemma)
+        encoder.transduce(lemma_enc, lemma, lemma_phonemes_enc)
 
         encoder.pop()  # BEGIN_WORD_CHAR
         action_history, word, losses, count = [COPY], [], [], 0
