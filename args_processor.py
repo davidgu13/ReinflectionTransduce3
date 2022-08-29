@@ -1,12 +1,7 @@
 import os
 
 import datasets
-import hacm
-import hacm_sub
-import haem
-import haem_sub
-import hard
-import transducer
+from Models import hacm, hacm_sub, haem, haem_sub, hard, transducer
 from DataRelatedClasses.DataSets.EditDataSet import EditDataSet
 from aligners import cls_align, dumb_align, smart_align
 from defaults import DATA_PATH, LANGUAGES_LIST, NULL_ARGS, RESULTS_PATH

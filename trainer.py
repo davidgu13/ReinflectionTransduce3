@@ -692,7 +692,7 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
     # BEAM-SEARCH-BASED PREDICTIONS FROM THIS MODEL
     if beam_widths:
         print('\nDecoding with beam search...')
-        import hacm_sub
+        from Models import hacm_sub
         if not callable(getattr(transducer, "beam_search_decode", None)) or \
             isinstance(transducer, hacm_sub.MinimalTransducer):
             print('Transducer does not implement beam search.')

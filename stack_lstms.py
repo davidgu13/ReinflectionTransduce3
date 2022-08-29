@@ -3,7 +3,7 @@ from typing import List
 import dynet as dy
 from _dynet import Expression
 
-from TransformerModels.transformer_classes import MultiHeadAttentionLayer
+from Models.self_attention import MultiHeadAttentionLayer
 
 #############################################################
 # Stack RNNs and biRNNs

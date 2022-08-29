@@ -5,7 +5,7 @@ import numpy as np
 
 from defaults import (COPY, DELETE, BEGIN_WORD, END_WORD, UNK, MAX_ACTION_SEQ_LEN)
 from stack_lstms import Encoder, StackRNN, StackBiRNN
-from transducer import Transducer
+from Models.transducer import Transducer
 
 class EditTransducer(Transducer):
 

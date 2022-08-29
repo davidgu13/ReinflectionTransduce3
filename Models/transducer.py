@@ -4,7 +4,7 @@ import numpy as np
 
 from defaults import COPY, DELETE, END_WORD, MAX_ACTION_SEQ_LEN, UNK
 from stack_lstms import Encoder
-from TransformerModels.transformer_classes import MultiHeadAttentionLayer
+from Models.self_attention import MultiHeadAttentionLayer
 
 NONLINS = {'tanh': dy.tanh, 'ReLU': dy.rectify}
 def get_Expression_shape(exp: Expression): return exp.npvalue().shape
