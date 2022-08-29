@@ -45,9 +45,14 @@ class Transducer(object):
         self.INSERTS = list(range(self.vocab.number_specials, self.NUM_ACTS))
 
         # report stats
-        print(f'{self.NUM_ACTS} actions: {", ".join(list(self.vocab.act.keys()))}'.encode('ascii', 'ignore'))
-        print(f'{self.NUM_FEATS} features: {", ".join(list(self.vocab.feat.keys()))}')
-        print(f'{self.NUM_CHARS} lemma chars: {", ".join(list(self.vocab.char.keys()))}'.encode('ascii', 'ignore'))
+        try:
+            print(f'{self.NUM_ACTS} actions: {", ".join(list(self.vocab.act.keys()))}')
+            print(f'{self.NUM_FEATS} features: {", ".join(list(self.vocab.feat.keys()))}')
+            print(f'{self.NUM_CHARS} lemma chars: {", ".join(list(self.vocab.char.keys()))}')
+        except UnicodeError:
+            print(f'{self.NUM_ACTS} actions: {", ".join(list(self.vocab.act.keys()))}'.encode('ascii', 'ignore'))
+            print(f'{self.NUM_FEATS} features: {", ".join(list(self.vocab.feat.keys()))}')
+            print(f'{self.NUM_CHARS} lemma chars: {", ".join(list(self.vocab.char.keys()))}'.encode('ascii', 'ignore'))
 
         if self.avm_feat_format:
             self.NUM_FEAT_TYPES = self.vocab.feat_type_train

@@ -56,7 +56,10 @@ class AlignedDataSet(BaseDataSet):
             self._build_oracle_actions(al, aw, sample=sample, **kwargs)
         print('Finished building oracle actions.')
         print(f'Number of actions: {len(self.vocab.act)}')
-        print(f'Action set: {" ".join(sorted(self.vocab.act.keys()))}'.encode('ascii', 'ignore'))
+        try:
+            print(f'Action set: {" ".join(sorted(self.vocab.act.keys()))}')
+        except UnicodeError:
+            print(f'Action set: {" ".join(sorted(self.vocab.act.keys()))}'.encode('ascii', 'ignore'))
 
         if self.verbose:
             print('Examples of oracle actions:')
