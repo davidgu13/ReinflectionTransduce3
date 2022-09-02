@@ -1,5 +1,5 @@
 import codecs
-from os.path import join
+from os.path import join, isfile, dirname
 from os import listdir
 from ast import literal_eval
 from typing import Tuple, Dict
@@ -87,6 +87,9 @@ def evaluate_features_predictions(outputs_file: str, phonology_converter: Langua
         print(f"Warning: No such file: {outputs_file}")
         return
 
+    # print(join(dirname(outputs_file), 'f.stats'))
+    assert isfile(join(dirname(outputs_file), 'f.stats'))
+
     if phonology_converter is None:
         language = get_language(outputs_file)
         phonology_converter = LanguageSetup.create_phonology_converter(language)
@@ -102,7 +105,7 @@ def evaluate_features_predictions(outputs_file: str, phonology_converter: Langua
     return graphemes_accuracy, features_accuracy, graphemes_ed, features_ed
 
 if __name__ == '__main__':
-    single_file, local_mode = True, False
+    single_file, local_mode = False, False
     if single_file:
         print(evaluate_features_predictions(join("Results", "Outputs1007__bul_V_lemma_f_f_None_42", 'f.greedy.test.predictions'), output_mode='phonemes'))
     elif local_mode:
@@ -115,9 +118,9 @@ if __name__ == '__main__':
             print(f"{pred_file}: ", end='')
             print(evaluate_features_predictions(pred_file))
     else:
-        results_folder = join('.', 'Results', 'demos_42_f_f', 'Second_Demos_Session')
+        results_folder = join('.', 'Results', 'test_runs', 'f-p-attn')
         predictions_files = [join(results_folder, f, 'f.greedy.test.predictions') for f in listdir(results_folder)]
 
         for pred_file in predictions_files:
             print(f"{pred_file}: ", end='')
-            print(evaluate_features_predictions(pred_file))
+            print(evaluate_features_predictions(pred_file, output_mode='phonemes'))
