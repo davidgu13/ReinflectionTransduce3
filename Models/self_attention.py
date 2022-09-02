@@ -57,7 +57,10 @@ class LinearLayer(object):
             x_in = make_time_distributed(x)
 
         if self._have_bias:
-            x_out = affine_transform([self._p_b, self._p_W, x_in])
+            try:
+                x_out = affine_transform([self._p_b, self._p_W, x_in])
+            except TypeError: # in dynet==2.0.2 _dynet.Parameters and _dynet.Expression aren't castable to each other
+                x_out = affine_transform([self._p_b.expr(), self._p_W.expr(), x_in])
         else:
             x_out = self._p_W * x_in
 
