@@ -86,6 +86,7 @@ def internal_eval(batches, transducer, vocab,
     total_loss = 0.
     predictions = []
     pred_acts = []
+    edit_distances = []
     i = 0  # counter of samples
     for j, batch in enumerate(batches):
         dy.renew_cg()
@@ -103,6 +104,9 @@ def internal_eval(batches, transducer, vocab,
             if prediction in vocab.word and vocab.word.w2i[prediction] == sample.word:
                 correct_prediction = True
                 number_correct += 1
+                edit_distances.append(0.0)
+            else:
+                edit_distances.append(editdistance.eval(sample.phonemes_str, prediction))
 
             if check_condition:
                 # display prediction for this sample if it differs the prediction
@@ -123,8 +127,9 @@ def internal_eval(batches, transducer, vocab,
         if j > 0 and j % 100 == 0: print('\t\t...{} batches'.format(j))
 
     accuracy = number_correct / i
+    edit_distance = np.mean(edit_distances)
     print('\t...finished in {:.3f} sec'.format(time.time() - then))
-    return accuracy, total_loss, predictions, pred_acts
+    return accuracy, total_loss, predictions, pred_acts, edit_distance
 
 
 def internal_eval_beam(batches, transducer, vocab,
@@ -276,15 +281,15 @@ class TrainingSession(object):
 
     def dev_eval(self, check_condition=True):
         # call internal_eval with dev batches
-        dev_accuracy, avg_dev_loss, _, self.dev_predicted_actions = \
+        dev_accuracy, avg_dev_loss, _, self.dev_predicted_actions, dev_edit_distance = \
             internal_eval(self.dev_batches, self.transducer, self.vocab,
                           self.dev_predicted_actions,
                           check_condition=check_condition, name='dev')
-        return dev_accuracy, avg_dev_loss
+        return dev_accuracy, avg_dev_loss, dev_edit_distance
 
     def train_eval(self, check_condition=True):
         # call internal_eval with train batches
-        train_dev_accuracy, avg_loss, _, self.train_predicted_actions = \
+        train_dev_accuracy, avg_loss, _, self.train_predicted_actions, _ = \
             internal_eval(self.sanity_batches, self.transducer, self.vocab,
                           self.train_predicted_actions,
                           check_condition=check_condition, name='train')
@@ -584,7 +589,7 @@ class TrainingSession(object):
 
         # LOG FILE INIT
         with open(log_file_path, 'a') as a:
-            a.write('epoch\tavg_loss\ttrain_accuracy\tdev_accuracy\n')
+            a.write('epoch\tavg_loss\ttrain_accuracy\tdev_accuracy\tdev_edit_distance\n')
 
         patience = 0
         for epoch in range(epochs):
@@ -620,7 +625,7 @@ class TrainingSession(object):
 
             # EVALUATE MODEL ON DEV
             if self.dev_data:
-                dev_accuracy, avg_dev_loss = self.dev_eval(check_condition(epoch))
+                dev_accuracy, avg_dev_loss, dev_edit_distance = self.dev_eval(check_condition(epoch))
 
                 if dev_accuracy > self.best_dev_accuracy:
                     self.best_dev_accuracy = dev_accuracy
@@ -648,6 +653,7 @@ class TrainingSession(object):
 
             else:
                 dev_accuracy = -1
+                dev_edit_distance = -1
                 patience = 0
                 self.model.save(tmp_model_path)
                 print('saved last model to {}'.format(tmp_model_path))
@@ -658,7 +664,7 @@ class TrainingSession(object):
 
             # LOG LATEST RESULTS
             with open(log_file_path, 'a') as a:
-                a.write(f"{epoch}\t{self.avg_loss:.6f}\t{train_accuracy}\t{dev_accuracy}\n")
+                a.write(f"{epoch}\t{self.avg_loss:.6f}\t{train_accuracy}\t{dev_accuracy}\t{dev_edit_distance}\n")
 
             if patience == max_patience:
                 print('out of patience after {} epochs'.format(epoch + 1))
@@ -680,7 +686,7 @@ def withheld_data_eval(name, batches, transducer, vocab, beam_widths,
        launches external eval script. Returns greedy accuracy (hm...?)"""
 
     # GREEDY PREDICTIONS FROM THIS MODEL 
-    greedy_accuracy, _, predictions, _ = internal_eval(batches,
+    greedy_accuracy, _, predictions, _, _ = internal_eval(batches,
         transducer, vocab, None, check_condition=False, name=name)
     if greedy_accuracy > 0:
         print('{} accuracy: {}'.format(name, greedy_accuracy))
