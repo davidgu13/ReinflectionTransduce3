@@ -1,13 +1,14 @@
 from os import listdir
-from os.path import join, isfile
+from os.path import join, isfile, isdir
 from shutil import move
 
 valid_path, invalid_path = 'ValidRuns', 'InvalidRuns'
 
 def count_valid_runs(results_folder, is_run_valid, fix=False):
     valids_counter, invalids_counter, valid_runs, invalid_runs = 0, 0, [], []
+    sub_folders = [folder for folder in listdir(results_folder) if folder.startswith("Outputs_")]
 
-    for sub_folder in listdir(results_folder):
+    for sub_folder in sub_folders:
         folder_to_validate = join(results_folder, sub_folder)
         if is_run_valid(folder_to_validate):
             valid_runs.append(sub_folder)
@@ -43,10 +44,10 @@ if __name__ == '__main__':
             return False
 
         logs_lines = open(log_file).readlines()
-        stats_file = join(folder_path, 'f.stats')
-
         if '0.0' in ' '.join(logs_lines[-1].strip().split()[2:4]): # accuracy on train or dev in last epoch is 0
             print(f'Warning: check out {folder_path}/f.log')
+
+        stats_file = join(folder_path, 'f.stats')
 
         return len(logs_lines) == 51 and isfile(stats_file)
 
