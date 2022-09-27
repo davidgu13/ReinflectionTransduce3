@@ -273,7 +273,8 @@ class Transducer(object):
         in_features, out_features = self._build_features(*in_feats), self._build_features(*out_feats)
 
         # add encoder and decoder to computation graph
-        encoder = Encoder(self.fbuffRNN, self.bbuffRNN, self.self_attention, self.kwargs['phonology_converter'].max_phoneme_size)
+        self_attention_max_phoneme_size = self.kwargs['phonology_converter'].max_phoneme_size if self.self_attention else None
+        encoder = Encoder(self.fbuffRNN, self.bbuffRNN, self.self_attention, self_attention_max_phoneme_size)
         decoder = self.wordRNN.initial_state()
 
         # add classifier to computation graph
@@ -361,7 +362,6 @@ class Transducer(object):
                 encoder.pop()
             elif action == END_WORD:
                 # 1. Finish transduction
-                # print 'action '
                 break
             else:
                 # one of the INSERT actions

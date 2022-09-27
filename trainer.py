@@ -3,7 +3,7 @@ import time
 from collections import Counter
 
 import dynet as dy
-import editdistance
+from editdistance import eval as edit_distance_eval
 import numpy as np
 import progressbar
 
@@ -75,9 +75,7 @@ def pcfp_internal_eval(batches, transducer, vocab,
     return accuracy, total_loss, predictions, pred_acts
 
 
-def internal_eval(batches, transducer, vocab,
-                  previous_predicted_actions,
-                  check_condition=True, name='train'):
+def internal_eval(batches, transducer, vocab, previous_predicted_actions, check_condition=True, name='train'):
 
     then = time.time()
     print('evaluating on {} data...'.format(name))
@@ -94,7 +92,8 @@ def internal_eval(batches, transducer, vocab,
         for sample in batch:
             in_feats = sample.in_pos, sample.in_feats
             out_feats = sample.out_pos, sample.out_feats
-            loss, prediction, predicted_actions = transducer.transduce(sample.lemma, in_feats, out_feats, external_cg=True, phonemes=sample.phonemes)
+            loss, prediction, predicted_actions = transducer.transduce(sample.lemma, in_feats, out_feats,
+                                                                       external_cg=True, phonemes=sample.phonemes)
             predictions.append(prediction)
             pred_acts.append(predicted_actions)
             batch_loss.extend(loss)
@@ -106,7 +105,8 @@ def internal_eval(batches, transducer, vocab,
                 number_correct += 1
                 edit_distances.append(0.0)
             else:
-                edit_distances.append(editdistance.eval(sample.phonemes_str, prediction))
+                gold_target = sample.phonemes_str if sample.phonemes_str else sample.word_str
+                edit_distances.append(edit_distance_eval(gold_target, prediction))
 
             if check_condition:
                 # display prediction for this sample if it differs the prediction
@@ -128,7 +128,7 @@ def internal_eval(batches, transducer, vocab,
 
     accuracy = number_correct / i
     edit_distance = np.mean(edit_distances)
-    print('\t...finished in {:.3f} sec'.format(time.time() - then))
+    print(f'\t...finished in {(time.time() - then):.3f} sec')
     return accuracy, total_loss, predictions, pred_acts, edit_distance
 
 
@@ -350,8 +350,8 @@ class TrainingSession(object):
                 reward = 1.
             else:
                 # the smaller the distance the better
-                #reward = -1*int(editdistance.eval(word_str, prediction))/len(word_str)
-                reward = -beta_ned * editdistance.eval(word_str, prediction) / max(len(word_str), len(prediction))
+                #reward = -1*int(edit_distance_eval(word_str, prediction))/len(word_str)
+                reward = -beta_ned * edit_distance_eval(word_str, prediction) / max(len(word_str), len(prediction))
             return reward
 
         def RL_batch_update(batch, *args):
@@ -457,7 +457,7 @@ class TrainingSession(object):
                 reward = -1.
             else:
                 # the smaller the distance the better
-                reward = beta_ned * editdistance.eval(word_str, prediction) / max(len(word_str), len(prediction))
+                reward = beta_ned * edit_distance_eval(word_str, prediction) / max(len(word_str), len(prediction))
             return reward
 
         def MRT_batch_update(batch, epoch):
