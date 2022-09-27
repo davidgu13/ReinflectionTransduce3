@@ -3,7 +3,7 @@ data files and evaluation script.
 
 Usage:
   run_transducer.py [--dynet-seed SEED] [--dynet-mem MEM] [--dynet-autobatch ON]
-  [--transducer=TRANSDUCER] [--sigm2017format] [--no-feat-format]
+  [--transducer=TRANSDUCER] [--sigm2017format] [--no-feat-format] [--use-phonology] [--self-attn]
   [--input=INPUT] [--feat-input=FEAT] [--action-input=ACTION] [--pos-emb] [--avm-feat-format]
   [--enc-hidden=HIDDEN] [--dec-hidden=HIDDEN] [--enc-layers=LAYERS] [--dec-layers=LAYERS]
   [--vanilla-lstm] [--mlp=MLP] [--nonlin=NONLIN] [--lucky-w=W]
@@ -35,6 +35,8 @@ Options:
   --action-input=ACTION         action embedding dimension [default: 100]
   --pos-emb                     embedding POS (or the first feature in the sequence of features) as a non-atomic feature
   --avm-feat-format             features are treated as an attribute-value matrix (`=` pairs attributes with values)
+  --use-phonology               instead of transducing letters, use their phonological representeation
+  --self-attn                   if use-phonology, then before the encoder rnn, represent phonemes by features with a self-attention layer
   --enc-hidden=HIDDEN           hidden layer dimension of encoder RNNs [default: 200]
   --enc-layers=LAYERS           number of layers in encoder RNNs [default: 1]
   --dec-hidden=HIDDEN           hidden layer dimension of decoder RNNs [default: 200]
@@ -81,16 +83,17 @@ Options:
   --hall-path=HALL-PATH         path with hallucinated data
 """
 
-
 import random
+
 import dynet as dy
 import numpy as np
 from docopt import docopt
-# import sys, codecs
 
 from args_processor import process_arguments
 from trainer import TrainingSession, dev_external_eval, test_external_eval
 from util import evaluate_features_predictions, write_generalized_measures
+
+# import sys, codecs
 
 # sys.stdout = codecs.getwriter('utf-8')(sys.__stdout__)
 # sys.stderr = codecs.getwriter('utf-8')(sys.__stderr__)
@@ -110,10 +113,10 @@ if __name__ == "__main__":
     print('Loading data... Dataset: {}'.format(data_arguments['dataset']))
     train_data = data_arguments['dataset'].from_file(paths['train_path'], **data_arguments)
     phonology_converter = train_data.phonology_converter
+    model_arguments['phonology_converter'] = phonology_converter
     VOCAB = train_data.vocab
     VOCAB.train_cutoff()  # knows that entities before come from train set
     batch_size = optim_arguments['decbatch-size']
-    model_arguments['use_phonology'] = phonology_converter is not None
 
     if paths['dev_path']:
         dev_data = data_arguments['dataset'].from_file(paths['dev_path'], vocab=VOCAB, **data_arguments)
@@ -136,9 +139,9 @@ if __name__ == "__main__":
         model = dy.Model()
         transducer = model_arguments['transducer'](model, VOCAB, **model_arguments)
 
-        training_session = TrainingSession(model, transducer, VOCAB,
-            train_data, dev_data, optim_arguments['batch-size'],  # train batchsize
-            optim_arguments['optimizer'], batch_size, dev_batches)
+        training_session = TrainingSession(model, transducer, VOCAB, train_data, dev_data,
+                                           optim_arguments['batch-size'],  # train batchsize
+                                           optim_arguments['optimizer'], batch_size, dev_batches)
 
         if paths['reload_path']:
             training_session.reload(paths['reload_path'], paths['tmp_model_path'])
@@ -151,16 +154,16 @@ if __name__ == "__main__":
                 print('Pretraining the model in a supervised manner for {} epochs.'.format(pretrain_epochs))
             else:
                 print(('Pretraining the model in a supervised manner until'
-                    ' train accuracy {}.'.format(train_until_accuracy)))
+                       ' train accuracy {}.'.format(train_until_accuracy)))
             training_session.run_MLE_training(epochs=pretrain_epochs,
-                train_until_accuracy=train_until_accuracy,
-                max_patience=optim_arguments['patience'],
-                pick_best_accuracy=optim_arguments['pick-acc'],
-                dropout=optim_arguments['pretrain-dropout'],
-                l2=optim_arguments['l2'],
-                log_file_path=paths['log_file_path'],
-                tmp_model_path=paths['tmp_model_path'],
-                check_condition=data_arguments['verbose'])
+                                              train_until_accuracy=train_until_accuracy,
+                                              max_patience=optim_arguments['patience'],
+                                              pick_best_accuracy=optim_arguments['pick-acc'],
+                                              dropout=optim_arguments['pretrain-dropout'],
+                                              l2=optim_arguments['l2'],
+                                              log_file_path=paths['log_file_path'],
+                                              tmp_model_path=paths['tmp_model_path'],
+                                              check_condition=data_arguments['verbose'])
             print('Finished pretraining. Train loss: {}'.format(training_session.avg_loss))
             print('Reloading the best supervised model...')
             training_session.reload(paths['tmp_model_path'])
@@ -169,15 +172,14 @@ if __name__ == "__main__":
         # endregion handle pretraining
 
         if optim_arguments['mode'] == 'mle':
-            training_session.run_MLE_training(
-                epochs=optim_arguments['epochs'],
-                max_patience=optim_arguments['patience'],
-                pick_best_accuracy=optim_arguments['pick-acc'],
-                dropout=optim_arguments['dropout'],
-                l2=optim_arguments['l2'],
-                log_file_path=paths['log_file_path'],
-                tmp_model_path=paths['tmp_model_path'],
-                check_condition=data_arguments['verbose'])
+            training_session.run_MLE_training(epochs=optim_arguments['epochs'],
+                                              max_patience=optim_arguments['patience'],
+                                              pick_best_accuracy=optim_arguments['pick-acc'],
+                                              dropout=optim_arguments['dropout'],
+                                              l2=optim_arguments['l2'],
+                                              log_file_path=paths['log_file_path'],
+                                              tmp_model_path=paths['tmp_model_path'],
+                                              check_condition=data_arguments['verbose'])
 
         elif optim_arguments['mode'] == 'rl':
             training_session.run_RL_training(
@@ -223,17 +225,19 @@ if __name__ == "__main__":
 
     if test_data:
         print('=========TEST EVALUATION:=========')
-        test_batches = [test_data.samples[i:i+batch_size] for i in range(0, len(test_data), batch_size)]
+        test_batches = [test_data.samples[i: i + batch_size] for i in range(0, len(test_data), batch_size)]
         test_accuracy = test_external_eval(test_batches, transducer, VOCAB, paths,
-                           optim_arguments['beam-widths'], data_arguments['sigm2017format'])
+                                           optim_arguments['beam-widths'], data_arguments['sigm2017format'])
     else:
         test_accuracy = -1
 
+    # TODO: re-add test evaluation for no phonology mode.
     if model_arguments['use_phonology'] and test_accuracy != -1:
         # Reevaluate at graphemes level: Read the test predictions file and evaluate the features predictions.
         # Then, write in f.stats all the 4 measures.
         test_predictions_file = paths['test_output']('greedy') + 'predictions'
-        measures = evaluate_features_predictions(test_predictions_file, phonology_converter)
+        measures = evaluate_features_predictions(test_predictions_file, phonology_converter,
+                                                 output_mode='phonemes' if data_arguments['self_attention'] else 'features')
 
-        assert measures[1] == test_accuracy # the return of test_external_eval equals to the (features-level) predictions' evaluation
+        assert measures[1] == test_accuracy  # the return of test_external_eval equals to the (features-level) predictions' evaluation
         write_generalized_measures(paths['stats_file_path'], measures)

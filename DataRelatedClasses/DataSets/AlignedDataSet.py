@@ -34,7 +34,10 @@ class AlignedDataSet(BaseDataSet):
 
         print(f'Started aligning with {self.aligner} aligner...')
         if use_phonology:
-            aligned_pairs = self.aligner([(unwrapper(s.lemma), s.word_phonological) for s in self.samples], **kwargs)
+            if kwargs['self_attention']:
+                aligned_pairs = self.aligner([(unwrapper(s.phonemes), s.word_phonological) for s in self.samples], **kwargs)
+            else:
+                aligned_pairs = self.aligner([(unwrapper(s.lemma), s.word_phonological) for s in self.samples], **kwargs)
             # aligned_pairs[0][0] = [5, 6, 7, 8, 9, 10, 11, 8, ..., 8, 15, 16, 7, 8, 5, 6, 17, '~', '~', ...]
             # aligned_pairs[0][1] = [5, 6, 7, 8, 9, 10, 11, 8, ..., 8, 15, 16, 7, 8, 5, 6, 7, 8, 18, ..., 17]
         else:
@@ -53,7 +56,10 @@ class AlignedDataSet(BaseDataSet):
             self._build_oracle_actions(al, aw, sample=sample, **kwargs)
         print('Finished building oracle actions.')
         print(f'Number of actions: {len(self.vocab.act)}')
-        print(f'Action set: {" ".join(sorted(self.vocab.act.keys()))}')
+        try:
+            print(f'Action set: {" ".join(sorted(self.vocab.act.keys()))}')
+        except UnicodeError:
+            print(f'Action set: {" ".join(sorted(self.vocab.act.keys()))}'.encode('ascii', 'ignore'))
 
         if self.verbose:
             print('Examples of oracle actions:')

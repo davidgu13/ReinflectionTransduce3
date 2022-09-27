@@ -18,8 +18,7 @@ def get_folder_difference(folder_name, verbose = False):
     if verbose: print(delta)
     return delta_str, delta.seconds
 
-def extract_durations(results_folder=None):
-    excel_file = 'Durations_42_f_f.xlsx'
+def extract_durations(results_folder, excel_file):
     if excel_file in os.listdir(): remove(excel_file)
 
     accuracies = []
@@ -34,7 +33,7 @@ def extract_durations(results_folder=None):
     df = df.fillna("")
     df.to_excel(excel_file)
 
-if __name__ == '__main__':
+def main():
     df = read_excel("Durations.xlsx", "runs_list")
     seed = "100"
     runs_scripts_folder = join("runs_scripts", "f_f_runs", seed)
@@ -55,4 +54,9 @@ if __name__ == '__main__':
             with open(join(runs_scripts_folder, f"group{Index}-{seed}.sh"), "a+") as file:
                 file.write(line+'\n')
 
-    # extract_durations(join("Results", "None_42_f_f"))
+
+if __name__ == '__main__':
+    # main()
+    results_folder = join("Results", "None_42_f_p_attn")
+    excel_file = 'Durations_42_f_p_attn.xlsx'
+    extract_durations(results_folder, excel_file)

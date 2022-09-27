@@ -16,7 +16,7 @@ def action2string(actions, vocab: EditVocab):
     if '$' in vocab.act.i2w.keys():
         return ', '.join(stringified_actions)
     else:
-        return ''.join(stringified_actions)
+        return ' '.join(stringified_actions)
 
 def feats2string(pos, feats, vocab):
     if pos:
