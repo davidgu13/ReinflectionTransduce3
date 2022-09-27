@@ -5,7 +5,7 @@ import numpy as np
 
 from defaults import (STEP, BEGIN_WORD, END_WORD, UNK, MAX_ACTION_SEQ_LEN, UNK_CHAR)
 from stack_lstms import Encoder
-from transducer import Transducer
+from Models.transducer import Transducer
 
 COPY = -1
 
