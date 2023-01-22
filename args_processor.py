@@ -106,6 +106,7 @@ def process_data_arguments(arguments):
 
     return {
         'language'      : language,
+        'train_samples' : int(arguments['--train-samples']),
         'use_phonology' : arguments['--use-phonology'],
         'self_attention': arguments['--self-attn'] if arguments['--use-phonology'] else False,
         'dataset'       : dset,
