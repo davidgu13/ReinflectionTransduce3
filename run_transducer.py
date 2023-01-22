@@ -3,7 +3,7 @@ data files and evaluation script.
 
 Usage:
   run_transducer.py [--dynet-seed SEED] [--dynet-mem MEM] [--dynet-autobatch ON]
-  [--transducer=TRANSDUCER] [--sigm2017format] [--no-feat-format] [--use-phonology] [--self-attn]
+  [--transducer=TRANSDUCER] [--sigm2017format] [--no-feat-format] [--use-phonology] [--self-attn] [--train-samples=T]
   [--input=INPUT] [--feat-input=FEAT] [--action-input=ACTION] [--pos-emb] [--avm-feat-format]
   [--enc-hidden=HIDDEN] [--dec-hidden=HIDDEN] [--enc-layers=LAYERS] [--dec-layers=LAYERS]
   [--vanilla-lstm] [--mlp=MLP] [--nonlin=NONLIN] [--lucky-w=W]
@@ -35,8 +35,11 @@ Options:
   --action-input=ACTION         action embedding dimension [default: 100]
   --pos-emb                     embedding POS (or the first feature in the sequence of features) as a non-atomic feature
   --avm-feat-format             features are treated as an attribute-value matrix (`=` pairs attributes with values)
+
+  --train-samples=T               number of train samples. Used for the learning curves. [default: 8000]
   --use-phonology               instead of transducing letters, use their phonological representeation
   --self-attn                   if use-phonology, then before the encoder rnn, represent phonemes by features with a self-attention layer
+
   --enc-hidden=HIDDEN           hidden layer dimension of encoder RNNs [default: 200]
   --enc-layers=LAYERS           number of layers in encoder RNNs [default: 1]
   --dec-hidden=HIDDEN           hidden layer dimension of decoder RNNs [default: 200]

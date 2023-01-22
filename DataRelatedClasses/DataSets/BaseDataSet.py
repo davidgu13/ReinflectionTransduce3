@@ -6,6 +6,7 @@ from typing import List
 from DataRelatedClasses.DataSamples.BaseDataSample import BaseDataSample
 from DataRelatedClasses.Vocabs.VocabBox import VocabBox
 from PhonologyConverter.languages_setup import LanguageSetup
+from DataRelatedClasses.utils import generate_random_indices_in_range
 
 class BaseDataSet(object):
     # class to hold an encoded dataset
@@ -55,7 +56,12 @@ class BaseDataSet(object):
         print('Verbose?', verbose)
 
         with codecs.open(filename, encoding=encoding) as f:
-            for row in f:
+            use_partial_data = training_data and kwargs['train_samples'] < 8000
+            if use_partial_data:
+                lines_indices = generate_random_indices_in_range(kwargs['train_samples']) # sample part of the 8000
+
+            for i, row in enumerate(f):
+                if use_partial_data and i not in lines_indices: continue
                 split_row = row.strip().split(delimiter)
                 sample = DataSample.from_row(vocab, tag_wraps, verbose, split_row, sigm2017format=kwargs['sigm2017format'],
                           phonology_converter=phonology_converter, use_self_attention=kwargs['self_attention'])
