@@ -43,7 +43,7 @@ for seed in seeds:
         global_index += 1
 
     for bin_idx, bin_commands in bins.items():
-        with open(join(directory_path, f"bin{bin_idx}.sh"), "w") as f:
+        with open(join(directory_path, f"bin{bin_idx}-{seed}.sh"), "w") as f:
             f.write(f"# bin #{bin_idx}\n\n")
             for i, command in enumerate(bin_commands):
                 f.write(command)

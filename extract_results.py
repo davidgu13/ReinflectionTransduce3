@@ -21,7 +21,11 @@ def extract_accuracies_from_single_folder(folder, io_format):
     # The folder has the format: Outputs_YYYY-MM-DD hhmmss_lang_pos_training-mode_IO_analogy_seed.
     # If the output format is not graphemes ('g'), then reevaluation was made at graphemes level.
 
-    lines = open(join(folder, 'f.stats'), encoding='utf8').read().split('\n')
+    try:
+        lines = open(join(folder, 'f.stats'), encoding='utf8').read().split('\n')
+    except FileNotFoundError:
+        print(f"No f.stats file in {folder}!")
+        return None
 
     test_ed, test_graphemes_accuracy, test_graphemes_ed = [-1] * 3
     if io_format == 'gg':
@@ -62,6 +66,7 @@ def main():
         for folder in folders:
             datetime, lang, pos, training_mode, io_format, analogy, _, samples_number = basename(folder).split("_")[1:]
             metrics = extract_accuracies_from_single_folder(folder, io_format)
+            if metrics is None: continue
 
             run_records.append([datetime, analogy, seed, lang, pos, training_mode,
                                 io_format, samples_number, *metrics])
