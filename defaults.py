@@ -1,7 +1,7 @@
 import os
 
 SRC_PATH = os.path.dirname(__file__)
-RESULTS_PATH = os.path.join(SRC_PATH, 'Results')
+RESULTS_PATH = os.path.join(SRC_PATH, 'Results', 'LearningCurves')
 DATA_PATH = os.path.join(SRC_PATH, '..', '.data', 'Reinflection', 'CleanedData')
 EVALM_PATH = os.path.join(SRC_PATH, '..', 'eval_scripts', 'evalm.py')
 
