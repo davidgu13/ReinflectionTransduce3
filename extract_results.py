@@ -1,6 +1,7 @@
 # This is a Python3 script for extracting the runs results to an Excel file, including final dev and test accuracies.
 import re
 from itertools import product
+from datetime import datetime as dt
 from os import listdir
 from os.path import basename, isdir, join
 from pandas import DataFrame
@@ -49,7 +50,7 @@ def main():
     analogy_types, seeds = ['None'], ['100', '42', '21']
     train_samples = ['1000', '2000', '3000', '4000', '5000', '6000', '7000']
 
-    excel_results_file = f"Test-Results {'_'.join(analogy_types)}-{'_'.join(seeds)}-{'_'.join(io_formats)}-1k-7k.xlsx"
+    excel_results_file = f"Test-Results {'_'.join(analogy_types)}-{'_'.join(seeds)}-{'_'.join(io_formats)}-1k-7k - {dt.now().strftime('%d%m%Y_%H%M%S')}.xlsx"
 
     run_records = []
     for seed in seeds:
